@@ -1,35 +1,47 @@
+import { useThemeStore } from '../contexts/themeStore';
+
 export default function StatusBanner({ status }) {
+  const theme = useThemeStore((state) => state.theme);
+  
   const statusConfig = {
     operational: {
-      bg: 'bg-green-900/30',
+      bgDark: 'bg-green-900/30',
+      bgLight: 'bg-green-50',
       border: 'border-green-500',
-      text: 'text-green-400',
+      textDark: 'text-green-400',
+      textLight: 'text-green-700',
       icon: '✓',
       message: 'All Systems Operational'
     },
     degraded: {
-      bg: 'bg-yellow-900/30',
+      bgDark: 'bg-yellow-900/30',
+      bgLight: 'bg-yellow-50',
       border: 'border-yellow-500',
-      text: 'text-yellow-400',
+      textDark: 'text-yellow-400',
+      textLight: 'text-yellow-700',
       icon: '!',
       message: 'Partial System Outage'
     },
     outage: {
-      bg: 'bg-red-900/30',
+      bgDark: 'bg-red-900/30',
+      bgLight: 'bg-red-50',
       border: 'border-red-500',
-      text: 'text-red-400',
+      textDark: 'text-red-400',
+      textLight: 'text-red-700',
       icon: '×',
       message: 'Major System Outage'
     }
   };
 
   const config = statusConfig[status] || statusConfig.operational;
+  const bg = theme === 'dark' ? config.bgDark : config.bgLight;
+  const text = theme === 'dark' ? config.textDark : config.textLight;
 
   return (
-    <div className={`${config.bg} border ${config.border} rounded-lg p-6 mb-8`}>
+    <div className={`${bg} border ${config.border} rounded-lg p-6 mb-8`}>
       <div className="flex items-center gap-3">
-        <span className={`${config.text} text-2xl font-bold`}>{config.icon}</span>
-        <h2 className={`${config.text} text-xl font-semibold`}>{config.message}</h2>
+        <span className={`${text} text-2xl font-bold`}>{config.icon}</span>
+        <h2 className={`${text} text-xl font-semibold`}>{config.message}</h2>
       </div>
     </div>
   );
