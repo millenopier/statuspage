@@ -1,0 +1,197 @@
+import { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
+import { getIncidents, createIncident, updateIncident, getServices } from '../services/api';
+
+export default function Incidents() {
+  const [incidents, setIncidents] = useState([]);
+  const [services, setServices] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingIncident, setEditingIncident] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    severity: 'minor',
+    status: 'investigating',
+    service_id: null,
+  });
+
+  useEffect(() => {
+    fetchIncidents();
+    fetchServices();
+  }, []);
+
+  const fetchIncidents = async () => {
+    try {
+      const response = await getIncidents();
+      setIncidents(response.data || []);
+    } catch (error) {
+      console.error('Error fetching incidents:', error);
+      setIncidents([]);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const response = await getServices();
+      setServices(response.data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      setServices([]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingIncident) {
+        await updateIncident(editingIncident.id, formData);
+      } else {
+        await createIncident(formData);
+      }
+      fetchIncidents();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving incident:', error);
+    }
+  };
+
+  const handleEdit = (incident) => {
+    setEditingIncident(incident);
+    setFormData(incident);
+    setShowForm(true);
+  };
+
+
+
+  const resetForm = () => {
+    setFormData({ title: '', description: '', severity: 'minor', status: 'investigating', service_id: null });
+    setEditingIncident(null);
+    setShowForm(false);
+  };
+
+  return (
+    <Layout>
+      <div className="px-4 py-6 sm:px-0">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Incidents</h1>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
+            {showForm ? 'Cancel' : 'Add Incident'}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 className="text-lg font-medium mb-4">{editingIncident ? 'Edit' : 'New'} Incident</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  required
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  rows="3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Severity</label>
+                <select
+                  value={formData.severity}
+                  onChange={(e) => setFormData({ ...formData, severity: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="info">Info</option>
+                  <option value="minor">Minor</option>
+                  <option value="major">Major</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="investigating">Investigating</option>
+                  <option value="identified">Identified</option>
+                  <option value="monitoring">Monitoring</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Service</label>
+                <select
+                  value={formData.service_id || ''}
+                  onChange={(e) => setFormData({ ...formData, service_id: e.target.value ? parseInt(e.target.value) : null })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                >
+                  <option value="">None</option>
+                  {services.map((service) => (
+                    <option key={service.id} value={service.id}>{service.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                Save
+              </button>
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+          {incidents.length === 0 ? (
+            <div className="px-6 py-8 text-center text-gray-500">
+              No incidents found. Create your first incident.
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {incidents.map((incident) => (
+              <li key={incident.id} className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">{incident.title}</h3>
+                    <p className="text-sm text-gray-500">{incident.description}</p>
+                    <div className="flex gap-2 mt-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {incident.severity}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {incident.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(incident)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+}

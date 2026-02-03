@@ -1,0 +1,12 @@
+FROM postgres:18-alpine
+
+# Copiar scripts de inicialização
+COPY backend/database/schema.sql /docker-entrypoint-initdb.d/1-schema.sql
+COPY backend/database/seed.sql /docker-entrypoint-initdb.d/2-seed.sql
+
+# Variáveis de ambiente padrão
+ENV POSTGRES_DB=statuspage
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+
+EXPOSE 5432
