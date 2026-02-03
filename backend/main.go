@@ -33,6 +33,8 @@ func main() {
 	r.HandleFunc("/api/public/services", publicHandler.GetServices).Methods("GET")
 	r.HandleFunc("/api/public/incidents", publicHandler.GetIncidents).Methods("GET")
 	r.HandleFunc("/api/public/maintenances", publicHandler.GetMaintenances).Methods("GET")
+	r.HandleFunc("/api/public/subscribe", publicHandler.Subscribe).Methods("POST")
+	r.HandleFunc("/api/public/unsubscribe", publicHandler.Unsubscribe).Methods("GET")
 
 	// Auth routes
 	r.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
@@ -57,6 +59,9 @@ func main() {
 	admin.HandleFunc("/maintenances", adminHandler.CreateMaintenance).Methods("POST")
 	admin.HandleFunc("/maintenances/{id}", adminHandler.UpdateMaintenance).Methods("PUT")
 	admin.HandleFunc("/maintenances/{id}", adminHandler.DeleteMaintenance).Methods("DELETE")
+
+	admin.HandleFunc("/subscribers", adminHandler.GetSubscribers).Methods("GET")
+	admin.HandleFunc("/subscribers/{id}", adminHandler.DeleteSubscriber).Methods("DELETE")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

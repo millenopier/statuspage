@@ -77,3 +77,15 @@ CREATE INDEX idx_incidents_status ON incidents(status);
 CREATE INDEX idx_incidents_created ON incidents(created_at DESC);
 CREATE INDEX idx_maintenances_scheduled ON maintenances(scheduled_start, scheduled_end);
 CREATE INDEX idx_services_position ON services(position);
+
+-- Subscribers table for email notifications
+CREATE TABLE IF NOT EXISTS subscribers (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    unsubscribe_token VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE INDEX idx_subscribers_email ON subscribers(email);
+CREATE INDEX idx_subscribers_active ON subscribers(is_active);

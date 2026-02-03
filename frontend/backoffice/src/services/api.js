@@ -39,3 +39,7 @@ export const getMaintenances = () => api.get('/public/maintenances');
 export const createMaintenance = (data) => api.post('/admin/maintenances', data);
 export const updateMaintenance = (id, data) => api.put(`/admin/maintenances/${id}`, data);
 export const deleteMaintenance = (id) => api.delete(`/admin/maintenances/${id}`);
+
+// Subscribers
+export const getSubscribers = () => api.get('/admin/subscribers');
+export const deleteSubscriber = (id) => api.delete(`/admin/subscribers/${id}`);

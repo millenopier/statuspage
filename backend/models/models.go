@@ -88,3 +88,15 @@ type StatusResponse struct {
 	Status   string    `json:"status"`
 	Services []Service `json:"services"`
 }
+
+type Subscriber struct {
+	ID                int       `json:"id"`
+	Email             string    `json:"email"`
+	IsActive          bool      `json:"is_active"`
+	CreatedAt         time.Time `json:"created_at"`
+	UnsubscribeToken  string    `json:"-"`
+}
+
+type SubscribeRequest struct {
+	Email string `json:"email"`
+}

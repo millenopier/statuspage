@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"statuspage/models"
-	"time"
 )
 
 type PublicHandler struct {
@@ -133,4 +134,50 @@ func (h *PublicHandler) GetMaintenances(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(maintenances)
+}
+
+func (h *PublicHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	var req models.SubscribeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	token := make([]byte, 32)
+	rand.Read(token)
+	unsubscribeToken := hex.EncodeToString(token)
+
+	_, err := h.DB.Exec(
+		"INSERT INTO subscribers (email, unsubscribe_token) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET is_active = true",
+		req.Email, unsubscribeToken,
+	)
+	if err != nil {
+		http.Error(w, "Failed to subscribe", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully subscribed to maintenance notifications"})
+}
+
+func (h *PublicHandler) Unsubscribe(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Token is required", http.StatusBadRequest)
+		return
+	}
+
+	_, err := h.DB.Exec("UPDATE subscribers SET is_active = false WHERE unsubscribe_token = $1", token)
+	if err != nil {
+		http.Error(w, "Failed to unsubscribe", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully unsubscribed"})
 }

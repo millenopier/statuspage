@@ -351,3 +351,42 @@ func (h *AdminHandler) DeleteMaintenance(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// Subscribers
+func (h *AdminHandler) GetSubscribers(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query("SELECT id, email, is_active, created_at FROM subscribers ORDER BY created_at DESC")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var subscribers []models.Subscriber
+	for rows.Next() {
+		var s models.Subscriber
+		if err := rows.Scan(&s.ID, &s.Email, &s.IsActive, &s.CreatedAt); err != nil {
+			continue
+		}
+		subscribers = append(subscribers, s)
+	}
+
+	if subscribers == nil {
+		subscribers = []models.Subscriber{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(subscribers)
+}
+
+func (h *AdminHandler) DeleteSubscriber(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	_, err := h.DB.Exec("DELETE FROM subscribers WHERE id=$1", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

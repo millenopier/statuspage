@@ -4,6 +4,7 @@ import ServiceList from './components/ServiceList';
 import IncidentTimeline from './components/IncidentTimeline';
 import MaintenanceCard from './components/MaintenanceCard';
 import HistorySection from './components/HistorySection';
+import SubscribeForm from './components/SubscribeForm';
 import ThemeToggle from './components/ThemeToggle';
 import { getHeartbeat, getIncidents, getMaintenances } from './services/api';
 import { useThemeStore } from './contexts/themeStore';
@@ -63,6 +64,7 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <StatusBanner status={status} />
+        <SubscribeForm />
         <MaintenanceCard maintenances={maintenances} />
         <ServiceList services={services} />
         <IncidentTimeline incidents={incidents} />
