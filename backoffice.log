@@ -1,0 +1,16 @@
+
+> statuspage-backoffice@1.0.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 578 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: use --host to expose
+1:29:00 PM [vite] hmr update /src/pages/Services.jsx, /src/index.css
+1:44:20 PM [vite] hmr update /src/pages/Services.jsx, /src/index.css
+1:44:27 PM [vite] hmr update /src/pages/Services.jsx, /src/index.css
+1:47:11 PM [vite] hmr update /src/pages/Incidents.jsx, /src/index.css
+1:47:38 PM [vite] hmr update /src/pages/Maintenances.jsx, /src/index.css
+1:48:33 PM [vite] hmr update /src/pages/Dashboard.jsx, /src/index.css
+1:49:55 PM [vite] hmr update /src/pages/Dashboard.jsx, /src/index.css

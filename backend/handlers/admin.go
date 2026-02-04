@@ -113,9 +113,20 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Valores padrão
+	if s.HeartbeatInterval == 0 {
+		s.HeartbeatInterval = 60
+	}
+	if s.RequestTimeout == 0 {
+		s.RequestTimeout = 120
+	}
+	if s.Retries == 0 {
+		s.Retries = 5
+	}
+
 	err := h.DB.QueryRow(
-		"INSERT INTO services (name, description, status, position) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at",
-		s.Name, s.Description, s.Status, s.Position,
+		"INSERT INTO services (name, description, status, position, url, heartbeat_interval, request_timeout, retries) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries,
 	).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
@@ -138,8 +149,8 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := h.DB.Exec(
-		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, updated_at=$5 WHERE id=$6",
-		s.Name, s.Description, s.Status, s.Position, time.Now(), id,
+		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, updated_at=$9 WHERE id=$10",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, time.Now(), id,
 	)
 
 	if err != nil {

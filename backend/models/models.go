@@ -10,13 +10,17 @@ type User struct {
 }
 
 type Service struct {
-	ID          int       `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	Position    int       `json:"position"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID                 int       `json:"id"`
+	Name               string    `json:"name"`
+	Description        string    `json:"description"`
+	Status             string    `json:"status"`
+	Position           int       `json:"position"`
+	URL                *string   `json:"url"`
+	HeartbeatInterval  int       `json:"heartbeat_interval"`
+	RequestTimeout     int       `json:"request_timeout"`
+	Retries            int       `json:"retries"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
 }
 
 type Incident struct {

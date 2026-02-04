@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { getMaintenances, createMaintenance, updateMaintenance } from '../services/api';
+import { useThemeStore } from '../contexts/themeStore';
 
 export default function Maintenances() {
+  const theme = useThemeStore((state) => state.theme);
   const [maintenances, setMaintenances] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingMaintenance, setEditingMaintenance] = useState(null);
@@ -71,7 +73,7 @@ export default function Maintenances() {
     <Layout>
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Maintenances</h1>
+          <h1 className={theme === 'dark' ? 'text-2xl font-semibold text-white' : 'text-2xl font-semibold text-gray-900'}>Maintenances</h1>
           <button
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -81,35 +83,35 @@ export default function Maintenances() {
         </div>
 
         {showForm && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-medium mb-4">{editingMaintenance ? 'Edit' : 'New'} Maintenance</h2>
+          <div className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6' : 'bg-white shadow rounded-lg p-6 mb-6'}>
+            <h2 className={theme === 'dark' ? 'text-lg font-medium text-white mb-4' : 'text-lg font-medium mb-4'}>{editingMaintenance ? 'Edit' : 'New'} Maintenance</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Title</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Description</label>
                 <textarea
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                   rows="3"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Status</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                 >
                   <option value="scheduled">Scheduled</option>
                   <option value="in_progress">In Progress</option>
@@ -117,23 +119,23 @@ export default function Maintenances() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Scheduled Start</label>
+                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Scheduled Start</label>
                 <input
                   type="datetime-local"
                   required
                   value={formData.scheduled_start}
                   onChange={(e) => setFormData({ ...formData, scheduled_start: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Scheduled End</label>
+                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Scheduled End</label>
                 <input
                   type="datetime-local"
                   required
                   value={formData.scheduled_end}
                   onChange={(e) => setFormData({ ...formData, scheduled_end: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                 />
               </div>
               <button
@@ -146,20 +148,20 @@ export default function Maintenances() {
           </div>
         )}
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden' : 'bg-white shadow overflow-hidden sm:rounded-md'}>
           {maintenances.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
+            <div className={theme === 'dark' ? 'px-6 py-8 text-center text-gray-400' : 'px-6 py-8 text-center text-gray-500'}>
               No maintenances scheduled. Create your first maintenance.
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
+            <ul className={theme === 'dark' ? 'divide-y divide-[#30363d]' : 'divide-y divide-gray-200'}>
               {maintenances.map((maintenance) => (
               <li key={maintenance.id} className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium">{maintenance.title}</h3>
-                    <p className="text-sm text-gray-500">{maintenance.description}</p>
-                    <div className="text-sm text-gray-600 mt-2">
+                    <h3 className={theme === 'dark' ? 'text-lg font-medium text-white' : 'text-lg font-medium'}>{maintenance.title}</h3>
+                    <p className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>{maintenance.description}</p>
+                    <div className={theme === 'dark' ? 'text-sm text-gray-400 mt-2' : 'text-sm text-gray-600 mt-2'}>
                       <div>Start: {new Date(maintenance.scheduled_start).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</div>
                       <div>End: {new Date(maintenance.scheduled_end).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</div>
                     </div>

@@ -1,0 +1,54 @@
+
+============================================================
+Health Check - 2026-02-04 12:17:28
+Config: Timeout=120s | Retries=5 | Interval=60s
+============================================================
+
+✅ Auth API: https://api.piercloud.io/auth/healthcheck - Status 404
+   → Reported to backend
+
+✅ LIGHTHOUSE: https://lighthouse.piercloud.com.br/ - Status 200
+   → Reported to backend
+
+✅ CCA API: https://compliance.api.piercloud.io/ - Status 401
+   → Reported to backend
+
+✅ DATA API: https://data.api.piercloud.io/ - Status 404
+   → Reported to backend
+
+✅ HUB NOTIFICATION: https://api.piercloud.io/hub-notification - Status 404
+   → Reported to backend
+
+✅ LAKE: https://api.piercloud.io/lake - Status 401
+   → Reported to backend
+
+✅ LIA: https://api.piercloud.io/lia/healthcheck - Status 404
+   → Reported to backend
+
+✅ LIGHTHOUSE BACKEND: https://lighthouse-backend.api.piercloud.io/ - Status 404
+   → Reported to backend
+
+✅ LOGIN: https://login.piercloud.com.br/ - Status 200
+   → Reported to backend
+
+🔌 TCP Check: KONG - k8s-kong-kongkong-33262edb32-314bd32f73ab8cb4.elb.us-east-1.amazonaws.com
+✅ KONG: TCP connection successful
+   → Reported to backend
+
+✅ SPM: https://api.piercloud.io/spm - Status 404
+   → Reported to backend
+
+✅ SKYLIFT: https://api.piercloud.io/skylift - Status 404
+   → Reported to backend
+
+✅ SPOT: https://api.piercloud.io/spot - Status 404
+   → Reported to backend
+
+✅ WEBSOCKET: https://api.piercloud.io/ws/healthcheck - Status 401
+   → Reported to backend
+
+============================================================
+Total: 14 | Failed: 0
+Next check in 60 seconds
+============================================================
+

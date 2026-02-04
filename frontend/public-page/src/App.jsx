@@ -73,7 +73,7 @@ export default function App() {
 
       <footer className={theme === 'dark' ? 'border-t border-[#30363d] mt-16' : 'border-t border-gray-200 mt-16'}>
         <div className={`max-w-5xl mx-auto px-4 py-6 text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-          © 2024 PierCloud. All rights reserved.
+          © 2026 PierCloud. All rights reserved.
         </div>
       </footer>
     </div>

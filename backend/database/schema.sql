@@ -13,6 +13,10 @@ CREATE TABLE IF NOT EXISTS services (
     description TEXT,
     status VARCHAR(50) DEFAULT 'operational',
     position INTEGER DEFAULT 0,
+    url TEXT,
+    heartbeat_interval INTEGER DEFAULT 60,
+    request_timeout INTEGER DEFAULT 120,
+    retries INTEGER DEFAULT 5,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
