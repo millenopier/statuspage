@@ -40,12 +40,10 @@ def send_slack_alert(service_name, old_status, new_status):
 def check_service(service_id, name, url, timeout):
     try:
         response = requests.get(url, timeout=timeout, allow_redirects=True)
-        if response.status_code >= 200 and response.status_code < 300:
-            return 'operational'
-        elif response.status_code >= 500:
+        if response.status_code >= 500:
             return 'outage'
         else:
-            return 'degraded'
+            return 'operational'
     except requests.exceptions.Timeout:
         return 'degraded'
     except:
