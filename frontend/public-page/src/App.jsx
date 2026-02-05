@@ -55,7 +55,7 @@ export default function App() {
       <header className={theme === 'dark' ? 'border-b border-[#30363d] bg-[#161b22]' : 'border-b border-gray-200 bg-white'}>
         <div className="max-w-5xl mx-auto px-4 py-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">PierCloud Status</h1>
+            <h1 className="text-2xl font-bold" style={{fontFamily: 'system-ui, -apple-system, sans-serif'}}>Pier Cloud Status</h1>
             <p className={theme === 'dark' ? 'text-gray-400 mt-1' : 'text-gray-600 mt-1'}>Service status and incident history</p>
           </div>
           <ThemeToggle />
@@ -73,7 +73,7 @@ export default function App() {
 
       <footer className={theme === 'dark' ? 'border-t border-[#30363d] mt-16' : 'border-t border-gray-200 mt-16'}>
         <div className={`max-w-5xl mx-auto px-4 py-6 text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-          © 2026 PierCloud. All rights reserved.
+          © 2026 Pier Cloud. All rights reserved.
         </div>
       </footer>
     </div>
