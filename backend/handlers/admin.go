@@ -249,6 +249,52 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
+func sendSlackServiceStatusChange(serviceName, oldStatus, newStatus string) {
+	if SLACK_WEBHOOK == "" {
+		return
+	}
+
+	color := "good"
+	title := "✅ Service Restored: " + serviceName
+	emoji := "✅"
+
+	if newStatus == "operational" && oldStatus != "operational" {
+		color = "good"
+		title = "✅ Service Restored: " + serviceName
+		emoji = "✅"
+	} else if newStatus == "degraded" {
+		color = "warning"
+		title = "⚠️ Service Degraded: " + serviceName
+		emoji = "⚠️"
+	} else if newStatus == "outage" {
+		color = "danger"
+		title = "🔴 Service Outage: " + serviceName
+		emoji = "🔴"
+	} else if newStatus == "maintenance" {
+		color = "#439FE0"
+		title = "🔧 Service Under Maintenance: " + serviceName
+		emoji = "🔧"
+	}
+
+	payload := map[string]interface{}{
+		"attachments": []map[string]interface{}{
+			{
+				"color": color,
+				"title": title,
+				"fields": []map[string]interface{}{
+					{"title": "Previous Status", "value": oldStatus, "short": true},
+					{"title": "Current Status", "value": newStatus, "short": true},
+					{"title": "Service", "value": serviceName, "short": true},
+					{"title": "Time", "value": time.Now().Add(-3 * time.Hour).Format("02/01/2006 15:04"), "short": true},
+				},
+			},
+		},
+	}
+
+	jsonData, _ := json.Marshal(payload)
+	http.Post(SLACK_WEBHOOK, "application/json", bytes.NewBuffer(jsonData))
+}
+
 func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
@@ -259,6 +305,10 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Buscar status anterior
+	var oldStatus, oldName string
+	h.DB.QueryRow("SELECT status, name FROM services WHERE id = $1", id).Scan(&oldStatus, &oldName)
+
 	_, err := h.DB.Exec(
 		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, updated_at=$9 WHERE id=$10",
 		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, time.Now(), id,
@@ -267,6 +317,11 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Se o status mudou, enviar notificação ao Slack
+	if oldStatus != s.Status {
+		sendSlackServiceStatusChange(s.Name, oldStatus, s.Status)
 	}
 
 	s.ID = id
