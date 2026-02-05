@@ -17,7 +17,7 @@ func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
 	var status string
 	var services []models.Service
 
-	rows, err := h.DB.Query("SELECT id, name, description, status, position FROM services ORDER BY position")
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services ORDER BY position")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -27,7 +27,7 @@ func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
 	allOperational := true
 	for rows.Next() {
 		var s models.Service
-		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
 		services = append(services, s)
@@ -50,7 +50,7 @@ func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PublicHandler) GetServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query("SELECT id, name, description, status, position, created_at, updated_at FROM services ORDER BY position")
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services ORDER BY position")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,7 +60,7 @@ func (h *PublicHandler) GetServices(w http.ResponseWriter, r *http.Request) {
 	var services []models.Service
 	for rows.Next() {
 		var s models.Service
-		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
 		services = append(services, s)
