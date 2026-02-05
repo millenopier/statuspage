@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"os"
 	"statuspage/models"
 	"strconv"
 	"time"
@@ -12,13 +13,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const SLACK_WEBHOOK = "https://hooks.slack.com/services/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"
+var SLACK_WEBHOOK = os.Getenv("SLACK_WEBHOOK")
 
 type AdminHandler struct {
 	DB *sql.DB
 }
 
 func sendSlackIncidentAlert(incident models.Incident, serviceName string) {
+	if SLACK_WEBHOOK == "" {
+		return
+	}
+	
 	color := "warning"
 	if incident.Severity == "critical" {
 		color = "danger"
@@ -46,6 +51,10 @@ func sendSlackIncidentAlert(incident models.Incident, serviceName string) {
 }
 
 func sendSlackIncidentUpdate(incidentTitle, updateMessage, status string) {
+	if SLACK_WEBHOOK == "" {
+		return
+	}
+	
 	color := "good"
 	if status == "resolved" {
 		color = "good"
@@ -71,6 +80,10 @@ func sendSlackIncidentUpdate(incidentTitle, updateMessage, status string) {
 }
 
 func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool) {
+	if SLACK_WEBHOOK == "" {
+		return
+	}
+	
 	color := "#439FE0"
 	title := "🔧 Scheduled Maintenance: " + maintenance.Title
 	

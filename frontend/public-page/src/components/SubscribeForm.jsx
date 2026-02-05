@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useThemeStore } from '../contexts/themeStore';
-import axios from 'axios';
+import { api } from '../services/api';
 
 export default function SubscribeForm() {
   const theme = useThemeStore((state) => state.theme);
@@ -15,7 +15,7 @@ export default function SubscribeForm() {
     setStatus('');
 
     try {
-      await axios.post('http://localhost:8080/api/public/subscribe', { email });
+      await api.post('/public/subscribe', { email });
       setStatus('success');
       setEmail('');
       setTimeout(() => setShowModal(false), 2000);

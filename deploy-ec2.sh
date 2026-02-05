@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+export PATH=$PATH:/usr/local/go/bin
 
 echo "🚀 Deploying PierCloud Status Page..."
 
