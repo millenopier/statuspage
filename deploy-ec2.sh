@@ -14,6 +14,7 @@ git pull
 # Rebuild Backend
 echo "🔨 Building backend..."
 cd backend
+go mod download
 go build -o statuspage main.go
 sudo systemctl restart statuspage-backend
 

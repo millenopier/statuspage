@@ -9,10 +9,14 @@ import (
 	"statuspage/middleware"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
 func main() {
+	// Load .env file
+	godotenv.Load()
+	
 	cfg := config.Load()
 
 	db, err := database.Connect(cfg)
