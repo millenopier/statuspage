@@ -68,7 +68,7 @@ export default function App() {
         <MaintenanceCard maintenances={maintenances} />
         <ServiceList services={services} />
         <IncidentTimeline incidents={incidents} />
-        <HistorySection incidents={incidents} maintenances={maintenances} />
+        <HistorySection incidents={incidents} />
       </main>
 
       <footer className={theme === 'dark' ? 'border-t border-[#30363d] mt-16' : 'border-t border-gray-200 mt-16'}>
