@@ -1,0 +1,24 @@
+# Environment variables
+backend/.env
+
+# Dependencies
+node_modules/
+backend/vendor/
+
+# Build outputs
+frontend/public-page/dist/
+frontend/backoffice/dist/
+backend/statuspage
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
