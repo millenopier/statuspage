@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/smtp"
 	"os"
 	"statuspage/models"
 	"strconv"
@@ -12,6 +15,100 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
+func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+	smtpUser := os.Getenv("SMTP_USERNAME")
+	smtpPass := os.Getenv("SMTP_PASSWORD")
+	fromEmail := os.Getenv("SES_FROM_EMAIL")
+	
+	if smtpHost == "" || smtpUser == "" || smtpPass == "" || fromEmail == "" {
+		return
+	}
+
+	rows, err := db.Query("SELECT email FROM subscribers WHERE is_active = true")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	startSP := maintenance.ScheduledStart.Add(-3 * time.Hour)
+	endSP := maintenance.ScheduledEnd.Add(-3 * time.Hour)
+
+	subject := fmt.Sprintf("Scheduled Maintenance: %s", maintenance.Title)
+	htmlBody := fmt.Sprintf(`<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+	<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+		<h2 style="color: #2563eb;">Scheduled Maintenance Notification</h2>
+		<div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+			<h3 style="margin-top: 0;">%s</h3>
+			<p>%s</p>
+			<p><strong>Start (São Paulo):</strong> %s</p>
+			<p><strong>End (São Paulo):</strong> %s</p>
+		</div>
+		<p style="color: #666; font-size: 12px;">
+			You are receiving this email because you subscribed to maintenance notifications.
+		</p>
+	</div>
+</body>
+</html>`, maintenance.Title, maintenance.Description, startSP.Format("02/01/2006 15:04"), endSP.Format("02/01/2006 15:04"))
+
+	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+	
+	for rows.Next() {
+		var email string
+		if err := rows.Scan(&email); err != nil {
+			continue
+		}
+
+		msg := []byte(fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
+			fromEmail, email, subject, htmlBody))
+
+		tlsConfig := &tls.Config{ServerName: smtpHost}
+		conn, err := tls.Dial("tcp", smtpHost+":"+smtpPort, tlsConfig)
+		if err != nil {
+			continue
+		}
+
+		client, err := smtp.NewClient(conn, smtpHost)
+		if err != nil {
+			conn.Close()
+			continue
+		}
+
+		if err = client.Auth(auth); err != nil {
+			client.Close()
+			continue
+		}
+
+		if err = client.Mail(fromEmail); err != nil {
+			client.Close()
+			continue
+		}
+
+		if err = client.Rcpt(email); err != nil {
+			client.Close()
+			continue
+		}
+
+		w, err := client.Data()
+		if err != nil {
+			client.Close()
+			continue
+		}
+
+		_, err = w.Write(msg)
+		if err != nil {
+			w.Close()
+			client.Close()
+			continue
+		}
+
+		w.Close()
+		client.Quit()
+	}
+}
 
 var SLACK_WEBHOOK = os.Getenv("SLACK_WEBHOOK")
 
@@ -321,6 +418,9 @@ func (h *AdminHandler) CreateMaintenance(w http.ResponseWriter, r *http.Request)
 
 	// Enviar alerta ao Slack
 	sendSlackMaintenanceAlert(m, false)
+
+	// Enviar emails para subscribers
+	go sendMaintenanceEmails(h.DB, m)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m)

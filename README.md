@@ -164,7 +164,29 @@ DB_PASSWORD=postgres
 DB_NAME=statuspage
 JWT_SECRET=your-secret-key-change-in-production
 PORT=8080
+
+# Slack Notifications (opcional)
+SLACK_WEBHOOK=
+
+# AWS SES Email Notifications (opcional)
+SMTP_HOST=email-smtp.us-east-1.amazonaws.com
+SMTP_PORT=587
+SMTP_USERNAME=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SES_FROM_EMAIL=noreply@piercloud.io
 ```
+
+### Configurar AWS SES para Emails
+
+1. Acesse o [AWS SES Console](https://console.aws.amazon.com/ses/)
+2. Vá em **SMTP Settings** → **Create SMTP credentials**
+3. Copie as credenciais geradas
+4. Adicione no `.env`:
+   - `SMTP_USERNAME`: SMTP Username
+   - `SMTP_PASSWORD`: SMTP Password
+   - `SES_FROM_EMAIL`: Email verificado no SES
+5. Verifique um email em **Verified identities**
+6. (Produção) Solicite saída do Sandbox Mode
 
 ## Docker
 
