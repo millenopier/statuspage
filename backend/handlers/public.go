@@ -36,7 +36,13 @@ func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if allOperational {
+	// Verificar se há incidents ativos
+	var activeIncidents int
+	h.DB.QueryRow("SELECT COUNT(*) FROM incidents WHERE status != 'resolved'").Scan(&activeIncidents)
+
+	if activeIncidents > 0 {
+		status = "degraded"
+	} else if allOperational {
 		status = "operational"
 	} else {
 		status = "degraded"

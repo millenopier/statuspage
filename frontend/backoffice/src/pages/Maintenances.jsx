@@ -53,10 +53,18 @@ export default function Maintenances() {
 
   const handleEdit = (maintenance) => {
     setEditingMaintenance(maintenance);
+    // Converter UTC para horário de São Paulo (UTC-3)
+    const startDate = new Date(maintenance.scheduled_start);
+    const endDate = new Date(maintenance.scheduled_end);
+    
+    // Subtrair 3 horas para ajustar ao timezone de SP
+    startDate.setHours(startDate.getHours() - 3);
+    endDate.setHours(endDate.getHours() - 3);
+    
     setFormData({
       ...maintenance,
-      scheduled_start: new Date(maintenance.scheduled_start).toISOString().slice(0, 16),
-      scheduled_end: new Date(maintenance.scheduled_end).toISOString().slice(0, 16),
+      scheduled_start: startDate.toISOString().slice(0, 16),
+      scheduled_end: endDate.toISOString().slice(0, 16),
     });
     setShowForm(true);
   };
