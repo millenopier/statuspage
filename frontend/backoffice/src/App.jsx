@@ -12,7 +12,7 @@ export default function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/area">
       <Routes>
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
