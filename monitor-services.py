@@ -42,7 +42,10 @@ def check_service(service_id, name, url, timeout):
         response = requests.get(url, timeout=timeout, allow_redirects=True)
         if response.status_code >= 500:
             return 'outage'
+        elif response.status_code >= 300 and response.status_code < 400:
+            return 'degraded'
         else:
+            # 200-299 ou 400-499
             return 'operational'
     except requests.exceptions.Timeout:
         return 'degraded'
