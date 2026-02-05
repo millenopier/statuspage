@@ -52,6 +52,36 @@ def check_service(service_id, name, url, timeout):
     except:
         return 'outage'
 
+def create_or_update_incident(cur, conn, service_id, name, new_status):
+    if new_status in ['outage', 'degraded']:
+        # Verificar se já existe incidente ativo
+        cur.execute("""
+            SELECT id FROM incidents 
+            WHERE service_id = %s AND status != 'resolved'
+            ORDER BY created_at DESC LIMIT 1
+        """, (service_id,))
+        
+        existing = cur.fetchone()
+        if not existing:
+            # Criar novo incidente
+            severity = 'critical' if new_status == 'outage' else 'major'
+            title = f"{name} - {'Service Outage' if new_status == 'outage' else 'Performance Degraded'}"
+            cur.execute("""
+                INSERT INTO incidents (title, description, severity, status, service_id, created_at, updated_at)
+                VALUES (%s, %s, %s, 'investigating', %s, NOW(), NOW())
+            """, (title, f"Automated detection: {name} is {new_status}", severity, service_id))
+            conn.commit()
+            print(f"   → Created incident for {name}")
+    else:
+        # Resolver incidentes ativos se serviço voltou
+        cur.execute("""
+            UPDATE incidents SET status = 'resolved', updated_at = NOW()
+            WHERE service_id = %s AND status != 'resolved'
+        """, (service_id,))
+        if cur.rowcount > 0:
+            conn.commit()
+            print(f"   → Resolved incidents for {name}")
+
 def monitor_services():
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
@@ -77,6 +107,9 @@ def monitor_services():
                 (new_status, service_id)
             )
             conn.commit()
+            
+            # Criar/atualizar incidentes
+            create_or_update_incident(cur, conn, service_id, name, new_status)
             
             # Enviar alerta Slack
             send_slack_alert(name, current_status, new_status)
