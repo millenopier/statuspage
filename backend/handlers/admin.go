@@ -65,48 +65,49 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 		msg := []byte(fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
 			fromEmail, email, subject, htmlBody))
 
-		tlsConfig := &tls.Config{ServerName: smtpHost}
-		conn, err := tls.Dial("tcp", smtpHost+":"+smtpPort, tlsConfig)
+		// Conectar sem TLS primeiro (porta 587 usa STARTTLS)
+		conn, err := smtp.Dial(smtpHost + ":" + smtpPort)
 		if err != nil {
 			continue
 		}
 
-		client, err := smtp.NewClient(conn, smtpHost)
-		if err != nil {
+		// Iniciar STARTTLS
+		tlsConfig := &tls.Config{ServerName: smtpHost}
+		if err = conn.StartTLS(tlsConfig); err != nil {
 			conn.Close()
 			continue
 		}
 
-		if err = client.Auth(auth); err != nil {
-			client.Close()
+		if err = conn.Auth(auth); err != nil {
+			conn.Close()
 			continue
 		}
 
-		if err = client.Mail(fromEmail); err != nil {
-			client.Close()
+		if err = conn.Mail(fromEmail); err != nil {
+			conn.Close()
 			continue
 		}
 
-		if err = client.Rcpt(email); err != nil {
-			client.Close()
+		if err = conn.Rcpt(email); err != nil {
+			conn.Close()
 			continue
 		}
 
-		w, err := client.Data()
+		w, err := conn.Data()
 		if err != nil {
-			client.Close()
+			conn.Close()
 			continue
 		}
 
 		_, err = w.Write(msg)
 		if err != nil {
 			w.Close()
-			client.Close()
+			conn.Close()
 			continue
 		}
 
 		w.Close()
-		client.Quit()
+		conn.Quit()
 	}
 }
 

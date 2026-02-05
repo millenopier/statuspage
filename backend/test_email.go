@@ -65,50 +65,51 @@ func main() {
 		fromEmail, toEmail, subject, htmlBody))
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
-	tlsConfig := &tls.Config{ServerName: smtpHost}
 
-	conn, err := tls.Dial("tcp", smtpHost+":"+smtpPort, tlsConfig)
+	// Conectar sem TLS primeiro (porta 587 usa STARTTLS)
+	conn, err := smtp.Dial(smtpHost + ":" + smtpPort)
 	if err != nil {
 		fmt.Printf("❌ Erro ao conectar: %v\n", err)
 		return
 	}
 
-	client, err := smtp.NewClient(conn, smtpHost)
-	if err != nil {
-		fmt.Printf("❌ Erro ao criar cliente: %v\n", err)
+	// Iniciar STARTTLS
+	tlsConfig := &tls.Config{ServerName: smtpHost}
+	if err = conn.StartTLS(tlsConfig); err != nil {
+		fmt.Printf("❌ Erro ao iniciar TLS: %v\n", err)
 		conn.Close()
 		return
 	}
 
-	if err = client.Auth(auth); err != nil {
+	if err = conn.Auth(auth); err != nil {
 		fmt.Printf("❌ Erro de autenticação: %v\n", err)
 		fmt.Println("\n💡 Verifique:")
 		fmt.Println("   - SMTP_USERNAME está correto")
 		fmt.Println("   - SMTP_PASSWORD está correto")
-		client.Close()
+		conn.Close()
 		return
 	}
 
-	if err = client.Mail(fromEmail); err != nil {
+	if err = conn.Mail(fromEmail); err != nil {
 		fmt.Printf("❌ Erro no remetente: %v\n", err)
 		fmt.Println("\n💡 Verifique:")
 		fmt.Println("   - SES_FROM_EMAIL está verificado no AWS SES")
-		client.Close()
+		conn.Close()
 		return
 	}
 
-	if err = client.Rcpt(toEmail); err != nil {
+	if err = conn.Rcpt(toEmail); err != nil {
 		fmt.Printf("❌ Erro no destinatário: %v\n", err)
 		fmt.Println("\n💡 Se estiver em Sandbox Mode:")
 		fmt.Println("   - O email de destino precisa estar verificado no AWS SES")
-		client.Close()
+		conn.Close()
 		return
 	}
 
-	w, err := client.Data()
+	w, err := conn.Data()
 	if err != nil {
 		fmt.Printf("❌ Erro ao enviar dados: %v\n", err)
-		client.Close()
+		conn.Close()
 		return
 	}
 
@@ -116,12 +117,12 @@ func main() {
 	if err != nil {
 		fmt.Printf("❌ Erro ao escrever mensagem: %v\n", err)
 		w.Close()
-		client.Close()
+		conn.Close()
 		return
 	}
 
 	w.Close()
-	client.Quit()
+	conn.Quit()
 
 	fmt.Println("✅ Email enviado com sucesso!")
 	fmt.Println("\n📧 Verifique sua caixa de entrada (e spam)")
