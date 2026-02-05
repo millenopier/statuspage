@@ -11,6 +11,8 @@ export default function Dashboard() {
     maintenances: 0,
     operational: 0,
   });
+  const [activeIncidents, setActiveIncidents] = useState([]);
+  const [degradedServices, setDegradedServices] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -24,6 +26,9 @@ export default function Dashboard() {
         const services = servicesRes.data || [];
         const incidents = incidentsRes.data || [];
         const maintenances = maintenancesRes.data || [];
+
+        setActiveIncidents(incidents.filter(i => i.status !== 'resolved'));
+        setDegradedServices(services.filter(s => s.status !== 'operational'));
 
         setStats({
           services: services.length,
@@ -105,6 +110,56 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Active Incidents & Degraded Services */}
+        {(activeIncidents.length > 0 || degradedServices.length > 0) && (
+          <div className="mt-8">
+            <h2 className={theme === 'dark' ? 'text-xl font-semibold text-white mb-4' : 'text-xl font-semibold text-gray-900 mb-4'}>Active Issues</h2>
+            
+            {activeIncidents.length > 0 && (
+              <div className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-4' : 'bg-white shadow rounded-lg p-6 mb-4'}>
+                <h3 className={theme === 'dark' ? 'text-lg font-medium text-red-400 mb-3' : 'text-lg font-medium text-red-600 mb-3'}>🚨 Active Incidents</h3>
+                <div className="space-y-3">
+                  {activeIncidents.map((incident) => (
+                    <div key={incident.id} className="border-l-4 border-red-500 pl-4 py-2">
+                      <div className="font-medium">{incident.title}</div>
+                      <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{incident.description}</div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                        incident.severity === 'critical' ? 'bg-red-100 text-red-800' :
+                        incident.severity === 'major' ? 'bg-red-100 text-red-800' :
+                        incident.severity === 'minor' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {incident.severity} - {incident.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {degradedServices.length > 0 && (
+              <div className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg p-6' : 'bg-white shadow rounded-lg p-6'}>
+                <h3 className={theme === 'dark' ? 'text-lg font-medium text-yellow-400 mb-3' : 'text-lg font-medium text-yellow-600 mb-3'}>⚠️ Degraded Services</h3>
+                <div className="space-y-3">
+                  {degradedServices.map((service) => (
+                    <div key={service.id} className="border-l-4 border-yellow-500 pl-4 py-2">
+                      <div className="font-medium">{service.name}</div>
+                      <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{service.description}</div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                        service.status === 'outage' ? 'bg-red-100 text-red-800' :
+                        service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {service.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   );
