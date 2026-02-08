@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useThemeStore } from '../contexts/themeStore';
 import { api } from '../services/api';
 
 export default function SubscribeForm() {
-  const theme = useThemeStore((state) => state.theme);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +39,7 @@ export default function SubscribeForm() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
           <div 
-            className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg p-6 max-w-md w-full mx-4' : 'bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl'}
+            className="bg-[#161b22] border border-[#30363d] rounded-lg p-6 max-w-md w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -53,7 +51,7 @@ export default function SubscribeForm() {
               </button>
             </div>
             
-            <p className={theme === 'dark' ? 'text-sm text-gray-400 mb-4' : 'text-sm text-gray-600 mb-4'}>
+            <p className="text-sm text-gray-400 mb-4">
               Get notified about scheduled maintenances via email.
             </p>
             
@@ -64,9 +62,7 @@ export default function SubscribeForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className={theme === 'dark' 
-                  ? 'w-full px-4 py-3 bg-[#0d1117] border border-[#30363d] rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4' 
-                  : 'w-full px-4 py-3 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4'}
+                className="w-full px-4 py-3 bg-[#0d1117] border border-[#30363d] rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
               />
               
               <button
