@@ -1,23 +1,23 @@
 export default function StatusBanner({ status }) {
   const statusConfig = {
     operational: {
-      bg: 'bg-green-900/30',
+      bg: 'bg-green-50',
       border: 'border-green-500',
-      text: 'text-green-400',
+      text: 'text-green-700',
       icon: '✓',
       message: 'All Systems Operational'
     },
     degraded: {
-      bg: 'bg-yellow-900/30',
+      bg: 'bg-yellow-50',
       border: 'border-yellow-500',
-      text: 'text-yellow-400',
+      text: 'text-yellow-700',
       icon: '!',
       message: 'Partial System Outage'
     },
     outage: {
-      bg: 'bg-red-900/30',
+      bg: 'bg-red-50',
       border: 'border-red-500',
-      text: 'text-red-400',
+      text: 'text-red-700',
       icon: '×',
       message: 'Major System Outage'
     }

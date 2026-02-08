@@ -14,18 +14,18 @@ export default function ServiceList({ services }) {
   };
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-lg mb-8">
-      <div className="px-6 py-4 border-b border-[#30363d]">
+    <div className="bg-white border border-gray-200 rounded-lg mb-8 shadow-sm">
+      <div className="px-6 py-4 border-b border-gray-200">
         <h3 className="text-lg font-semibold">Services</h3>
       </div>
-      <div className="grid grid-cols-2 gap-px bg-[#30363d]">
+      <div className="grid grid-cols-2 gap-px bg-gray-200">
         {services.map((service) => (
-          <div key={service.id} className="px-6 py-4 bg-[#161b22] flex items-center justify-between hover:bg-[#0d1117] transition-colors">
+          <div key={service.id} className="px-6 py-4 bg-white flex items-center justify-between hover:bg-gray-50 transition-colors">
             <div className="flex items-center gap-4 flex-1">
               <div className="font-medium">{service.name}</div>
               <div className={`w-2 h-2 rounded-full ${statusColors[service.status]}`}></div>
             </div>
-            <div className="text-sm text-gray-400">{statusLabels[service.status]}</div>
+            <div className="text-sm text-gray-600">{statusLabels[service.status]}</div>
           </div>
         ))}
       </div>

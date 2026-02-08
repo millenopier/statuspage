@@ -21,15 +21,15 @@ export default function HistorySection({ incidents }) {
       <h3 className="text-lg font-semibold mb-4">Recent History</h3>
       
       {resolvedIncidents.length > 0 && (
-        <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-6">
-          <h4 className="text-md font-semibold mb-3 text-green-400">✓ Resolved Incidents</h4>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h4 className="text-md font-semibold mb-3 text-green-600">✓ Resolved Incidents</h4>
           <div className="space-y-3">
             {resolvedIncidents.map((incident) => (
               <div key={incident.id} className="border-l-2 border-green-500 pl-4 py-2">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium">{incident.title}</div>
-                    <div className="text-sm text-gray-400">{incident.description}</div>
+                    <div className="text-sm text-gray-600">{incident.description}</div>
                   </div>
                   <div className="text-xs text-gray-500">{formatDate(incident.resolved_at || incident.updated_at)}</div>
                 </div>

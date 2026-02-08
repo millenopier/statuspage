@@ -41,18 +41,18 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
         <div className="text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white">
-      <header className="border-b border-[#30363d] bg-[#161b22]">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="border-b border-gray-200 bg-white">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold">Pier Cloud Status</h1>
-          <p className="text-gray-400 mt-1">Service status and incident history</p>
+          <p className="text-gray-600 mt-1">Service status and incident history</p>
         </div>
       </header>
 
@@ -65,8 +65,8 @@ export default function App() {
         <HistorySection incidents={incidents} />
       </main>
 
-      <footer className="border-t border-[#30363d] mt-16">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-sm text-gray-400">
+      <footer className="border-t border-gray-200 mt-16">
+        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-sm text-gray-600">
           © 2026 Pier Cloud. All rights reserved.
         </div>
       </footer>
