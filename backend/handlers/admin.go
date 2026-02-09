@@ -120,7 +120,8 @@ type AdminHandler struct {
 }
 
 func sendSlackIncidentAlert(incident models.Incident, serviceName string) {
-	if SLACK_WEBHOOK == "" {
+	webhook := os.Getenv("SLACK_WEBHOOK")
+	if webhook == "" {
 		return
 	}
 	
@@ -147,11 +148,12 @@ func sendSlackIncidentAlert(incident models.Incident, serviceName string) {
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	http.Post(SLACK_WEBHOOK, "application/json", bytes.NewBuffer(jsonData))
+	http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
 }
 
 func sendSlackIncidentUpdate(incidentTitle, updateMessage, status string) {
-	if SLACK_WEBHOOK == "" {
+	webhook := os.Getenv("SLACK_WEBHOOK")
+	if webhook == "" {
 		return
 	}
 	
@@ -176,11 +178,12 @@ func sendSlackIncidentUpdate(incidentTitle, updateMessage, status string) {
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	http.Post(SLACK_WEBHOOK, "application/json", bytes.NewBuffer(jsonData))
+	http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
 }
 
 func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool) {
-	if SLACK_WEBHOOK == "" {
+	webhook := os.Getenv("SLACK_WEBHOOK")
+	if webhook == "" {
 		return
 	}
 	
@@ -215,7 +218,7 @@ func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool)
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	http.Post(SLACK_WEBHOOK, "application/json", bytes.NewBuffer(jsonData))
+	http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
 }
 
 // Services
@@ -277,7 +280,8 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendSlackServiceStatusChange(serviceName, oldStatus, newStatus string) {
-	if SLACK_WEBHOOK == "" {
+	webhook := os.Getenv("SLACK_WEBHOOK")
+	if webhook == "" {
 		return
 	}
 
@@ -314,7 +318,7 @@ func sendSlackServiceStatusChange(serviceName, oldStatus, newStatus string) {
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	http.Post(SLACK_WEBHOOK, "application/json", bytes.NewBuffer(jsonData))
+	http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
 }
 
 func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
