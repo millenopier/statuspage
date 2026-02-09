@@ -24,28 +24,23 @@ func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	allOperational := true
 	for rows.Next() {
 		var s models.Service
 		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
 		services = append(services, s)
-		if s.Status != "operational" {
-			allOperational = false
-		}
 	}
 
 	// Verificar se há incidents ativos E VISÍVEIS
 	var activeIncidents int
 	h.DB.QueryRow("SELECT COUNT(*) FROM incidents WHERE status != 'resolved' AND is_visible = true").Scan(&activeIncidents)
 
+	// Status degraded APENAS se houver incidents visíveis
 	if activeIncidents > 0 {
 		status = "degraded"
-	} else if allOperational {
-		status = "operational"
 	} else {
-		status = "degraded"
+		status = "operational"
 	}
 
 	w.Header().Set("Content-Type", "application/json")
