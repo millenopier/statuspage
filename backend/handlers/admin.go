@@ -46,7 +46,7 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 			continue
 		}
 
-		unsubscribeURL := fmt.Sprintf("https://status.piercloud.com/api/public/unsubscribe?token=%s", token)
+		unsubscribeURL := fmt.Sprintf("https://statuspage.piercloud.io/api/public/unsubscribe?token=%s", token)
 		htmlBody := fmt.Sprintf(`<html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
