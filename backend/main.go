@@ -66,6 +66,7 @@ func main() {
 
 	admin.HandleFunc("/subscribers", adminHandler.GetSubscribers).Methods("GET")
 	admin.HandleFunc("/subscribers/{id}", adminHandler.DeleteSubscriber).Methods("DELETE")
+	admin.HandleFunc("/subscribers/download", adminHandler.DownloadSubscribers).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

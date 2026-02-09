@@ -27,7 +27,7 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 		return
 	}
 
-	rows, err := db.Query("SELECT email FROM subscribers WHERE is_active = true")
+	rows, err := db.Query("SELECT email, unsubscribe_token FROM subscribers WHERE is_active = true")
 	if err != nil {
 		return
 	}
@@ -37,7 +37,17 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 	endSP := maintenance.ScheduledEnd.Add(-3 * time.Hour)
 
 	subject := fmt.Sprintf("Scheduled Maintenance: %s", maintenance.Title)
-	htmlBody := fmt.Sprintf(`<html>
+
+	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+	
+	for rows.Next() {
+		var email, token string
+		if err := rows.Scan(&email, &token); err != nil {
+			continue
+		}
+
+		unsubscribeURL := fmt.Sprintf("https://status.piercloud.com/api/public/unsubscribe?token=%s", token)
+		htmlBody := fmt.Sprintf(`<html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
 		<h2 style="color: #2563eb;">Scheduled Maintenance Notification</h2>
@@ -47,21 +57,13 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 			<p><strong>Start (São Paulo):</strong> %s</p>
 			<p><strong>End (São Paulo):</strong> %s</p>
 		</div>
-		<p style="color: #666; font-size: 12px;">
-			You are receiving this email because you subscribed to maintenance notifications.
+		<p style="color: #666; font-size: 12px; margin-top: 30px;">
+			You are receiving this email because you subscribed to maintenance notifications.<br>
+			<a href="%s" style="color: #999; text-decoration: none;">Unsubscribe from notifications</a>
 		</p>
 	</div>
 </body>
-</html>`, maintenance.Title, maintenance.Description, startSP.Format("02/01/2006 15:04"), endSP.Format("02/01/2006 15:04"))
-
-	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
-	
-	for rows.Next() {
-		var email string
-		if err := rows.Scan(&email); err != nil {
-			continue
-		}
-
+</html>`, maintenance.Title, maintenance.Description, startSP.Format("02/01/2006 15:04"), endSP.Format("02/01/2006 15:04"), unsubscribeURL)
 		msg := []byte(fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
 			fromEmail, email, subject, htmlBody))
 
@@ -256,24 +258,19 @@ func sendSlackServiceStatusChange(serviceName, oldStatus, newStatus string) {
 
 	color := "good"
 	title := "✅ Service Restored: " + serviceName
-	emoji := "✅"
 
 	if newStatus == "operational" && oldStatus != "operational" {
 		color = "good"
 		title = "✅ Service Restored: " + serviceName
-		emoji = "✅"
 	} else if newStatus == "degraded" {
 		color = "warning"
 		title = "⚠️ Service Degraded: " + serviceName
-		emoji = "⚠️"
 	} else if newStatus == "outage" {
 		color = "danger"
 		title = "🔴 Service Outage: " + serviceName
-		emoji = "🔴"
 	} else if newStatus == "maintenance" {
 		color = "#439FE0"
 		title = "🔧 Service Under Maintenance: " + serviceName
-		emoji = "🔧"
 	}
 
 	payload := map[string]interface{}{
@@ -569,4 +566,32 @@ func (h *AdminHandler) DeleteSubscriber(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *AdminHandler) DownloadSubscribers(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query("SELECT email, is_active, created_at FROM subscribers ORDER BY created_at DESC")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=subscribers.csv")
+
+	w.Write([]byte("Email,Status,Subscribed At\n"))
+
+	for rows.Next() {
+		var email string
+		var isActive bool
+		var createdAt time.Time
+		if err := rows.Scan(&email, &isActive, &createdAt); err != nil {
+			continue
+		}
+		status := "Active"
+		if !isActive {
+			status = "Unsubscribed"
+		}
+		w.Write([]byte(fmt.Sprintf("%s,%s,%s\n", email, status, createdAt.Format("2006-01-02 15:04:05"))))
+	}
 }

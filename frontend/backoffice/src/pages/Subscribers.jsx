@@ -33,6 +33,12 @@ export default function Subscribers() {
     }
   };
 
+  const handleDownload = () => {
+    const token = localStorage.getItem('token');
+    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/subscribers/download`;
+    window.open(`${url}?token=${token}`, '_blank');
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleString('pt-BR', {
       day: '2-digit',
@@ -50,8 +56,16 @@ export default function Subscribers() {
       <div className="px-4 py-6 sm:px-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className={theme === 'dark' ? 'text-2xl font-semibold text-white' : 'text-2xl font-semibold text-gray-900'}>Subscribers</h1>
-          <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>
-            Total: {subscribers.length} ({subscribers.filter(s => s.is_active).length} active)
+          <div className="flex items-center gap-4">
+            <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>
+              Total: {subscribers.length} ({subscribers.filter(s => s.is_active).length} active)
+            </div>
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            >
+              Download CSV
+            </button>
           </div>
         </div>
 
@@ -70,8 +84,8 @@ export default function Subscribers() {
                 <tr key={subscriber.id}>
                   <td className={theme === 'dark' ? 'px-6 py-4 whitespace-nowrap text-sm text-white' : 'px-6 py-4 whitespace-nowrap text-sm text-gray-900'}>{subscriber.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={subscriber.is_active ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800'}>
-                      {subscriber.is_active ? 'Active' : 'Inactive'}
+                    <span className={subscriber.is_active ? 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'}>
+                      {subscriber.is_active ? 'Active' : 'Unsubscribed'}
                     </span>
                   </td>
                   <td className={theme === 'dark' ? 'px-6 py-4 whitespace-nowrap text-sm text-gray-400' : 'px-6 py-4 whitespace-nowrap text-sm text-gray-500'}>{formatDate(subscriber.created_at)}</td>
