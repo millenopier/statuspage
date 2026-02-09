@@ -35,8 +35,8 @@ export default function Subscribers() {
 
   const handleDownload = () => {
     const token = localStorage.getItem('token');
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/admin/subscribers/download`;
-    window.open(`${url}?token=${token}`, '_blank');
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+    window.open(`${baseUrl}/admin/subscribers/download?token=${token}`, '_blank');
   };
 
   const formatDate = (date) => {
