@@ -30,6 +30,7 @@ type Incident struct {
 	Severity    string           `json:"severity"`
 	Status      string           `json:"status"`
 	ServiceID   *int             `json:"service_id"`
+	IsVisible   bool             `json:"is_visible"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
 	ResolvedAt  *time.Time       `json:"resolved_at"`

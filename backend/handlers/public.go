@@ -78,8 +78,9 @@ func (h *PublicHandler) GetServices(w http.ResponseWriter, r *http.Request) {
 
 func (h *PublicHandler) GetIncidents(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.DB.Query(`
-		SELECT id, title, description, severity, status, service_id, created_at, updated_at, resolved_at 
+		SELECT id, title, description, severity, status, service_id, is_visible, created_at, updated_at, resolved_at 
 		FROM incidents 
+		WHERE is_visible = true
 		ORDER BY created_at DESC
 		LIMIT 10
 	`)
@@ -92,7 +93,7 @@ func (h *PublicHandler) GetIncidents(w http.ResponseWriter, r *http.Request) {
 	var incidents []models.Incident
 	for rows.Next() {
 		var i models.Incident
-		if err := rows.Scan(&i.ID, &i.Title, &i.Description, &i.Severity, &i.Status, &i.ServiceID, &i.CreatedAt, &i.UpdatedAt, &i.ResolvedAt); err != nil {
+		if err := rows.Scan(&i.ID, &i.Title, &i.Description, &i.Severity, &i.Status, &i.ServiceID, &i.IsVisible, &i.CreatedAt, &i.UpdatedAt, &i.ResolvedAt); err != nil {
 			continue
 		}
 

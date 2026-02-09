@@ -59,6 +59,7 @@ func main() {
 	admin.HandleFunc("/incidents/{id}", adminHandler.UpdateIncident).Methods("PUT")
 	admin.HandleFunc("/incidents/{id}", adminHandler.DeleteIncident).Methods("DELETE")
 	admin.HandleFunc("/incidents/{id}/updates", adminHandler.AddIncidentUpdate).Methods("POST")
+	admin.HandleFunc("/incidents/{id}/visibility", adminHandler.ToggleIncidentVisibility).Methods("PATCH")
 
 	admin.HandleFunc("/maintenances", adminHandler.CreateMaintenance).Methods("POST")
 	admin.HandleFunc("/maintenances/{id}", adminHandler.UpdateMaintenance).Methods("PUT")

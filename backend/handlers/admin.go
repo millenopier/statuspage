@@ -348,14 +348,16 @@ func (h *AdminHandler) CreateIncident(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := h.DB.QueryRow(
-		"INSERT INTO incidents (title, description, severity, status, service_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at",
-		i.Title, i.Description, i.Severity, i.Status, i.ServiceID,
+		"INSERT INTO incidents (title, description, severity, status, service_id, is_visible) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at",
+		i.Title, i.Description, i.Severity, i.Status, i.ServiceID, false,
 	).Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	i.IsVisible = false
 
 	// Buscar nome do serviço
 	var serviceName string
@@ -387,8 +389,8 @@ func (h *AdminHandler) UpdateIncident(w http.ResponseWriter, r *http.Request) {
 	h.DB.QueryRow("SELECT status FROM incidents WHERE id = $1", id).Scan(&oldStatus)
 
 	_, err := h.DB.Exec(
-		"UPDATE incidents SET title=$1, description=$2, severity=$3, status=$4, service_id=$5, updated_at=$6 WHERE id=$7",
-		i.Title, i.Description, i.Severity, i.Status, i.ServiceID, time.Now(), id,
+		"UPDATE incidents SET title=$1, description=$2, severity=$3, status=$4, service_id=$5, is_visible=$6, updated_at=$7 WHERE id=$8",
+		i.Title, i.Description, i.Severity, i.Status, i.ServiceID, i.IsVisible, time.Now(), id,
 	)
 
 	if err != nil {
@@ -594,4 +596,27 @@ func (h *AdminHandler) DownloadSubscribers(w http.ResponseWriter, r *http.Reques
 		}
 		w.Write([]byte(fmt.Sprintf("%s,%s,%s\n", email, status, createdAt.Format("2006-01-02 15:04:05"))))
 	}
+}
+
+// Toggle Incident Visibility
+func (h *AdminHandler) ToggleIncidentVisibility(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	var req struct {
+		IsVisible bool `json:"is_visible"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err := h.DB.Exec("UPDATE incidents SET is_visible = $1, updated_at = $2 WHERE id = $3", req.IsVisible, time.Now(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"id": id, "is_visible": req.IsVisible})
 }
