@@ -195,7 +195,12 @@ export default function Services() {
                   <div>
                     <h3 className={theme === 'dark' ? 'text-lg font-medium text-white' : 'text-lg font-medium'}>{service.name}</h3>
                     <p className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>{service.description}</p>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                      service.status === 'operational' ? 'bg-green-100 text-green-800' :
+                      service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+                      service.status === 'outage' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
                       {service.status}
                     </span>
                   </div>

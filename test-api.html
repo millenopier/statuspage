@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing API</h1>
+    <div id="result"></div>
+    <script>
+        fetch('https://statuspage.piercloud.io/api/status-page/heartbeat/app')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(err => {
+                document.getElementById('result').innerHTML = 'ERROR: ' + err.message;
+            });
+    </script>
+</body>
+</html>
