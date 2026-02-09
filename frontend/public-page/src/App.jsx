@@ -58,7 +58,6 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto px-4 py-8">
         <StatusBanner status={status} />
-        <SubscribeForm />
         <MaintenanceCard maintenances={maintenances} />
         <ServiceList services={services} />
         <IncidentTimeline incidents={incidents} />
@@ -66,8 +65,11 @@ export default function App() {
       </main>
 
       <footer className="border-t border-gray-200 mt-16">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-sm text-gray-600">
-          © 2026 Pier Cloud. All rights reserved.
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <SubscribeForm />
+          <div className="text-center text-sm text-gray-600 mt-6">
+            © 2026 Pier Cloud. All rights reserved.
+          </div>
         </div>
       </footer>
     </div>
