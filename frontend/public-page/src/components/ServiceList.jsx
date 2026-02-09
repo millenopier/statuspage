@@ -1,4 +1,6 @@
 export default function ServiceList({ services }) {
+  console.log('ServiceList services:', services);
+  
   const statusColors = {
     operational: 'bg-green-500',
     degraded: 'bg-yellow-500',
@@ -19,15 +21,21 @@ export default function ServiceList({ services }) {
         <h3 className="text-lg font-semibold">Services</h3>
       </div>
       <div className="grid grid-cols-2 gap-px bg-gray-200">
-        {services.map((service) => (
-          <div key={service.id} className="px-6 py-4 bg-white flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="font-medium">{service.name}</div>
-              <div className={`w-2 h-2 rounded-full ${statusColors[service.status]}`}></div>
+        {services && services.length > 0 ? (
+          services.map((service) => (
+            <div key={service.id} className="px-6 py-4 bg-white flex items-center justify-between hover:bg-gray-50 transition-colors">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="font-medium">{service.name}</div>
+                <div className={`w-2 h-2 rounded-full ${statusColors[service.status]}`}></div>
+              </div>
+              <div className="text-sm text-gray-600">{statusLabels[service.status]}</div>
             </div>
-            <div className="text-sm text-gray-600">{statusLabels[service.status]}</div>
+          ))
+        ) : (
+          <div className="col-span-2 px-6 py-8 bg-white text-center text-gray-500">
+            No services available
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

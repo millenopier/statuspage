@@ -17,14 +17,18 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching data from API...');
         const [heartbeatRes, incidentsRes, maintenancesRes] = await Promise.all([
           getHeartbeat(),
           getIncidents(),
           getMaintenances()
         ]);
 
+        console.log('Heartbeat response:', heartbeatRes.data);
+        console.log('Services:', heartbeatRes.data.services);
+        
         setStatus(heartbeatRes.data.status);
-        setServices(heartbeatRes.data.services);
+        setServices(heartbeatRes.data.services || []);
         setIncidents(incidentsRes.data || []);
         setMaintenances(maintenancesRes.data || []);
       } catch (error) {
