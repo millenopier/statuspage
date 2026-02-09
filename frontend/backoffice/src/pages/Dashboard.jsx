@@ -49,6 +49,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleUnpublishIncident = async (incidentId) => {
+    try {
+      await toggleIncidentVisibility(incidentId, false);
+      fetchStats();
+    } catch (error) {
+      console.error('Error unpublishing incident:', error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
   }, []);
@@ -151,12 +160,19 @@ export default function Dashboard() {
                             )}
                           </div>
                         </div>
-                        {!incident.is_visible && (
+                        {!incident.is_visible ? (
                           <button
                             onClick={() => handlePublishIncident(incident.id)}
                             className="ml-4 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
                           >
                             Publish
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUnpublishIncident(incident.id)}
+                            className="ml-4 px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+                          >
+                            Unpublish
                           </button>
                         )}
                       </div>
