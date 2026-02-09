@@ -33,6 +33,7 @@ export const createIncident = (data) => api.post('/admin/incidents', data);
 export const updateIncident = (id, data) => api.put(`/admin/incidents/${id}`, data);
 export const deleteIncident = (id) => api.delete(`/admin/incidents/${id}`);
 export const addIncidentUpdate = (id, data) => api.post(`/admin/incidents/${id}/updates`, data);
+export const toggleIncidentVisibility = (id, isVisible) => api.patch(`/admin/incidents/${id}/visibility`, { is_visible: isVisible });
 
 // Maintenances
 export const getMaintenances = () => api.get('/admin/maintenances');

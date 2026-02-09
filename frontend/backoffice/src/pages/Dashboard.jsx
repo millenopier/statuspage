@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { getServices, getIncidents, getMaintenances } from '../services/api';
+import { getServices, getIncidents, getMaintenances, toggleIncidentVisibility } from '../services/api';
 import { useThemeStore } from '../contexts/themeStore';
 
 export default function Dashboard() {
@@ -14,33 +14,42 @@ export default function Dashboard() {
   const [activeIncidents, setActiveIncidents] = useState([]);
   const [degradedServices, setDegradedServices] = useState([]);
 
+  const fetchStats = async () => {
+    try {
+      const [servicesRes, incidentsRes, maintenancesRes] = await Promise.all([
+        getServices(),
+        getIncidents(),
+        getMaintenances(),
+      ]);
+
+      const services = servicesRes.data || [];
+      const incidents = incidentsRes.data || [];
+      const maintenances = maintenancesRes.data || [];
+
+      setActiveIncidents(incidents.filter(i => i.status !== 'resolved'));
+      setDegradedServices(services.filter(s => s.status !== 'operational'));
+
+      setStats({
+        services: services.length,
+        incidents: incidents.filter(i => i.status !== 'resolved').length,
+        maintenances: maintenances.filter(m => m.status !== 'completed').length,
+        operational: services.filter(s => s.status === 'operational').length,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const handlePublishIncident = async (incidentId) => {
+    try {
+      await toggleIncidentVisibility(incidentId, true);
+      fetchStats();
+    } catch (error) {
+      console.error('Error publishing incident:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [servicesRes, incidentsRes, maintenancesRes] = await Promise.all([
-          getServices(),
-          getIncidents(),
-          getMaintenances(),
-        ]);
-
-        const services = servicesRes.data || [];
-        const incidents = incidentsRes.data || [];
-        const maintenances = maintenancesRes.data || [];
-
-        setActiveIncidents(incidents.filter(i => i.status !== 'resolved'));
-        setDegradedServices(services.filter(s => s.status !== 'operational'));
-
-        setStats({
-          services: services.length,
-          incidents: incidents.filter(i => i.status !== 'resolved').length,
-          maintenances: maintenances.filter(m => m.status !== 'completed').length,
-          operational: services.filter(s => s.status === 'operational').length,
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
-
     fetchStats();
   }, []);
 
@@ -122,16 +131,35 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {activeIncidents.map((incident) => (
                     <div key={incident.id} className="border-l-4 border-red-500 pl-4 py-2">
-                      <div className="font-medium">{incident.title}</div>
-                      <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{incident.description}</div>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                        incident.severity === 'critical' ? 'bg-red-100 text-red-800' :
-                        incident.severity === 'major' ? 'bg-red-100 text-red-800' :
-                        incident.severity === 'minor' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {incident.severity} - {incident.status}
-                      </span>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-medium">{incident.title}</div>
+                          <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{incident.description}</div>
+                          <div className="flex gap-2 mt-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              incident.severity === 'critical' ? 'bg-red-100 text-red-800' :
+                              incident.severity === 'major' ? 'bg-red-100 text-red-800' :
+                              incident.severity === 'minor' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {incident.severity} - {incident.status}
+                            </span>
+                            {!incident.is_visible && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                Hidden
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {!incident.is_visible && (
+                          <button
+                            onClick={() => handlePublishIncident(incident.id)}
+                            className="ml-4 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Publish
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
