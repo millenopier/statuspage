@@ -15,6 +15,7 @@ export default function Incidents() {
     severity: 'minor',
     status: 'investigating',
     service_id: null,
+    is_visible: false,
   });
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function Incidents() {
       resetForm();
     } catch (error) {
       console.error('Error saving incident:', error);
+      alert('Error saving incident: ' + (error.response?.data || error.message));
     }
   };
 
@@ -66,7 +68,7 @@ export default function Incidents() {
 
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', severity: 'minor', status: 'investigating', service_id: null });
+    setFormData({ title: '', description: '', severity: 'minor', status: 'investigating', service_id: null, is_visible: false });
     setEditingIncident(null);
     setShowForm(false);
   };
