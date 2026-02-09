@@ -18,7 +18,7 @@ export default function MaintenanceCard({ maintenances }) {
     <div className="mb-8">
       <h3 className="text-lg font-semibold mb-4">Scheduled Maintenance</h3>
       <div className="space-y-4">
-        {maintenances.map((maintenance) => (
+        {activeMaintenances.map((maintenance) => (
           <div key={maintenance.id} className="bg-white border border-blue-300 rounded-lg p-4 shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <h4 className="font-semibold text-blue-600">{maintenance.title}</h4>
