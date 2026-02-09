@@ -51,16 +51,19 @@ func main() {
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 
+	admin.HandleFunc("/services", adminHandler.GetServices).Methods("GET")
 	admin.HandleFunc("/services", adminHandler.CreateService).Methods("POST")
 	admin.HandleFunc("/services/{id}", adminHandler.UpdateService).Methods("PUT")
 	admin.HandleFunc("/services/{id}", adminHandler.DeleteService).Methods("DELETE")
 
+	admin.HandleFunc("/incidents", adminHandler.GetIncidents).Methods("GET")
 	admin.HandleFunc("/incidents", adminHandler.CreateIncident).Methods("POST")
 	admin.HandleFunc("/incidents/{id}", adminHandler.UpdateIncident).Methods("PUT")
 	admin.HandleFunc("/incidents/{id}", adminHandler.DeleteIncident).Methods("DELETE")
 	admin.HandleFunc("/incidents/{id}/updates", adminHandler.AddIncidentUpdate).Methods("POST")
 	admin.HandleFunc("/incidents/{id}/visibility", adminHandler.ToggleIncidentVisibility).Methods("PATCH")
 
+	admin.HandleFunc("/maintenances", adminHandler.GetMaintenances).Methods("GET")
 	admin.HandleFunc("/maintenances", adminHandler.CreateMaintenance).Methods("POST")
 	admin.HandleFunc("/maintenances/{id}", adminHandler.UpdateMaintenance).Methods("PUT")
 	admin.HandleFunc("/maintenances/{id}", adminHandler.DeleteMaintenance).Methods("DELETE")

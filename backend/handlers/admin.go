@@ -219,6 +219,31 @@ func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool)
 }
 
 // Services
+func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services ORDER BY position")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var services []models.Service
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
+			continue
+		}
+		services = append(services, s)
+	}
+
+	if services == nil {
+		services = []models.Service{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(services)
+}
+
 func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	var s models.Service
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
@@ -340,6 +365,35 @@ func (h *AdminHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 }
 
 // Incidents
+func (h *AdminHandler) GetIncidents(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query(`
+		SELECT id, title, description, severity, status, service_id, is_visible, created_at, updated_at, resolved_at 
+		FROM incidents 
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var incidents []models.Incident
+	for rows.Next() {
+		var i models.Incident
+		if err := rows.Scan(&i.ID, &i.Title, &i.Description, &i.Severity, &i.Status, &i.ServiceID, &i.IsVisible, &i.CreatedAt, &i.UpdatedAt, &i.ResolvedAt); err != nil {
+			continue
+		}
+		incidents = append(incidents, i)
+	}
+
+	if incidents == nil {
+		incidents = []models.Incident{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(incidents)
+}
+
 func (h *AdminHandler) CreateIncident(w http.ResponseWriter, r *http.Request) {
 	var i models.Incident
 	if err := json.NewDecoder(r.Body).Decode(&i); err != nil {
@@ -454,6 +508,35 @@ func (h *AdminHandler) AddIncidentUpdate(w http.ResponseWriter, r *http.Request)
 }
 
 // Maintenances
+func (h *AdminHandler) GetMaintenances(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query(`
+		SELECT id, title, description, status, scheduled_start, scheduled_end, actual_start, actual_end, created_at, updated_at 
+		FROM maintenances 
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var maintenances []models.Maintenance
+	for rows.Next() {
+		var m models.Maintenance
+		if err := rows.Scan(&m.ID, &m.Title, &m.Description, &m.Status, &m.ScheduledStart, &m.ScheduledEnd, &m.ActualStart, &m.ActualEnd, &m.CreatedAt, &m.UpdatedAt); err != nil {
+			continue
+		}
+		maintenances = append(maintenances, m)
+	}
+
+	if maintenances == nil {
+		maintenances = []models.Maintenance{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(maintenances)
+}
+
 func (h *AdminHandler) CreateMaintenance(w http.ResponseWriter, r *http.Request) {
 	var m models.Maintenance
 	if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
