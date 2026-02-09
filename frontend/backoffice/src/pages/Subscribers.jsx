@@ -36,7 +36,24 @@ export default function Subscribers() {
   const handleDownload = () => {
     const token = localStorage.getItem('token');
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-    window.open(`${baseUrl}/admin/subscribers/download?token=${token}`, '_blank');
+    
+    fetch(`${baseUrl}/admin/subscribers/download`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subscribers.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(error => alert('Failed to download CSV'));
   };
 
   const formatDate = (date) => {
