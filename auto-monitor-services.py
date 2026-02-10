@@ -48,9 +48,6 @@ def check_service(service_id, name, url, timeout, retries, current_status):
             if response.status_code >= 500:
                 if attempt == retries - 1:
                     return 'outage', f"HTTP {response.status_code}"
-            elif response.status_code >= 400:
-                if attempt == retries - 1:
-                    return 'degraded', f"HTTP {response.status_code}"
             else:
                 return 'operational', None
                 
