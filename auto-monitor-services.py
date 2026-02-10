@@ -43,7 +43,7 @@ def check_service(service_id, name, url, timeout, retries, current_status):
     
     for attempt in range(retries):
         try:
-            response = requests.get(url, timeout=timeout, allow_redirects=True)
+            response = requests.get(url, timeout=timeout, allow_redirects=True, verify=False)
             
             if response.status_code >= 500:
                 if attempt == retries - 1:
@@ -92,4 +92,6 @@ def monitor_services():
     conn.close()
 
 if __name__ == "__main__":
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     monitor_services()
