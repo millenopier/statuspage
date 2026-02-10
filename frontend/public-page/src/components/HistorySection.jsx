@@ -10,7 +10,7 @@ export default function HistorySection({ incidents }) {
     });
   };
 
-  const resolvedIncidents = incidents.filter(i => i.status === 'resolved').slice(0, 10);
+  const resolvedIncidents = incidents.filter(i => i.status === 'resolved' && i.is_visible).slice(0, 10);
 
   if (resolvedIncidents.length === 0) {
     return null;

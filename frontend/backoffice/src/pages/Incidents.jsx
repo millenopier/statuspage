@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { getIncidents, createIncident, updateIncident, getServices } from '../services/api';
+import { getIncidents, createIncident, updateIncident, getServices, toggleIncidentVisibility } from '../services/api';
 import { useThemeStore } from '../contexts/themeStore';
 
 export default function Incidents() {
@@ -63,6 +63,16 @@ export default function Incidents() {
     setEditingIncident(incident);
     setFormData(incident);
     setShowForm(true);
+  };
+
+  const handleToggleVisibility = async (incident) => {
+    try {
+      await toggleIncidentVisibility(incident.id, !incident.is_visible);
+      fetchIncidents();
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      alert('Error toggling visibility');
+    }
   };
 
 
@@ -179,9 +189,18 @@ export default function Incidents() {
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {incident.status}
                       </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${incident.is_visible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {incident.is_visible ? '👁️ Published' : '🚫 Unpublished'}
+                      </span>
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleVisibility(incident)}
+                      className={`px-3 py-1 rounded ${incident.is_visible ? 'bg-gray-600 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                    >
+                      {incident.is_visible ? 'Unpublish' : 'Publish'}
+                    </button>
                     <button
                       onClick={() => handleEdit(incident)}
                       className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
