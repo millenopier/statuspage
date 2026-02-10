@@ -18,16 +18,25 @@ def send_slack_alert(service_name, old_status, new_status, error_msg=''):
     if not SLACK_WEBHOOK:
         return
     
-    color = "danger" if new_status == "outage" else "warning"
+    if new_status == "operational" and old_status == "outage":
+        color = "good"
+        title = f"✅ RECOVERED: {service_name} is back online"
+    elif new_status == "outage":
+        color = "danger"
+        title = f"🚨 ALERT: {service_name} is DOWN"
+    else:
+        color = "warning"
+        title = f"⚠️ WARNING: {service_name} status changed"
     
     payload = {
         "attachments": [{
             "color": color,
-            "title": f"🚨 Service Status Changed: {service_name}",
+            "title": title,
             "fields": [
                 {"title": "Service", "value": service_name, "short": True},
                 {"title": "Status", "value": f"{old_status} → {new_status}", "short": True},
-                {"title": "Error", "value": error_msg or "N/A", "short": False}
+                {"title": "Error", "value": error_msg or "N/A", "short": False},
+                {"title": "Time", "value": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "short": True}
             ]
         }]
     }
