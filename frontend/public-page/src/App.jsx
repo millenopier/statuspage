@@ -27,9 +27,15 @@ export default function App() {
         console.log('Heartbeat response:', heartbeatRes.data);
         console.log('Services:', heartbeatRes.data.services);
         
-        setStatus(heartbeatRes.data.status);
+        const fetchedIncidents = incidentsRes.data || [];
+        const activeIncidents = fetchedIncidents.filter(i => i.status !== 'resolved');
+        
+        // Atualizar status baseado em incidents visíveis ativos
+        const finalStatus = activeIncidents.length > 0 ? 'degraded' : heartbeatRes.data.status;
+        
+        setStatus(finalStatus);
         setServices(heartbeatRes.data.services || []);
-        setIncidents(incidentsRes.data || []);
+        setIncidents(fetchedIncidents);
         setMaintenances(maintenancesRes.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
