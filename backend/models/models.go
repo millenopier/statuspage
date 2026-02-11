@@ -19,6 +19,7 @@ type Service struct {
 	HeartbeatInterval  int       `json:"heartbeat_interval"`
 	RequestTimeout     int       `json:"request_timeout"`
 	Retries            int       `json:"retries"`
+	IsVisible          bool      `json:"is_visible"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 }
