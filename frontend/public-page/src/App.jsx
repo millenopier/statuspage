@@ -29,12 +29,19 @@ export default function App() {
         
         const fetchedIncidents = incidentsRes.data || [];
         const activeIncidents = fetchedIncidents.filter(i => i.status !== 'resolved');
+        const fetchedServices = heartbeatRes.data.services || [];
+        const unavailableServices = fetchedServices.filter(s => s.status === 'outage' || s.status === 'degraded');
         
-        // Atualizar status baseado em incidents visíveis ativos
-        const finalStatus = activeIncidents.length > 0 ? 'degraded' : heartbeatRes.data.status;
+        // Determinar status baseado em serviços indisponíveis
+        let finalStatus = 'operational';
+        if (unavailableServices.length >= 2) {
+          finalStatus = 'outage';
+        } else if (unavailableServices.length === 1 || activeIncidents.length > 0) {
+          finalStatus = 'degraded';
+        }
         
         setStatus(finalStatus);
-        setServices(heartbeatRes.data.services || []);
+        setServices(fetchedServices);
         setIncidents(fetchedIncidents);
         setMaintenances(maintenancesRes.data || []);
       } catch (error) {

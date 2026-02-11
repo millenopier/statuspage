@@ -12,14 +12,14 @@ export default function StatusBanner({ status }) {
       border: 'border-yellow-500',
       text: 'text-yellow-700',
       icon: '!',
-      message: 'Partial System Outage'
+      message: 'Partially Operational'
     },
     outage: {
       bg: 'bg-red-50',
       border: 'border-red-500',
       text: 'text-red-700',
       icon: '×',
-      message: 'Major System Outage'
+      message: 'Multiple Systems Affected'
     }
   };
 
