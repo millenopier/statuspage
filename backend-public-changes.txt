@@ -1,0 +1,61 @@
+// SUBSTITUIR NO ARQUIVO backend/handlers/public.go
+
+// Função GetHeartbeat - LINHA ~16
+func (h *PublicHandler) GetHeartbeat(w http.ResponseWriter, r *http.Request) {
+	var status string
+	var services []models.Service
+
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services WHERE is_visible = true ORDER BY position")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
+			continue
+		}
+		services = append(services, s)
+	}
+
+	// Verificar se há incidents ativos E VISÍVEIS
+	var activeIncidents int
+	h.DB.QueryRow("SELECT COUNT(*) FROM incidents WHERE status != 'resolved' AND is_visible = true").Scan(&activeIncidents)
+
+	// Status degraded APENAS se houver incidents visíveis
+	if activeIncidents > 0 {
+		status = "degraded"
+	} else {
+		status = "operational"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(models.StatusResponse{
+		Status:   status,
+		Services: services,
+	})
+}
+
+// Função GetServices - LINHA ~50
+func (h *PublicHandler) GetServices(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services WHERE is_visible = true ORDER BY position")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var services []models.Service
+	for rows.Next() {
+		var s models.Service
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
+			continue
+		}
+		services = append(services, s)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(services)
+}

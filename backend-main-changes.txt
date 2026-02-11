@@ -1,0 +1,7 @@
+// ADICIONAR NO ARQUIVO backend/main.go
+
+// Procure pela linha que tem:
+// admin.HandleFunc("/services/{id}", adminHandler.DeleteService).Methods("DELETE")
+
+// ADICIONE LOGO APÓS:
+admin.HandleFunc("/services/{id}/visibility", adminHandler.ToggleServiceVisibility).Methods("PATCH")
