@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { getServices, createService, updateService, deleteService } from '../services/api';
+import { getServices, createService, updateService, deleteService, toggleServiceVisibility } from '../services/api';
 import { useThemeStore } from '../contexts/themeStore';
 
 export default function Services() {
@@ -17,6 +17,7 @@ export default function Services() {
     heartbeat_interval: 60,
     request_timeout: 120,
     retries: 5,
+    is_visible: true,
   });
 
   useEffect(() => {
@@ -65,8 +66,18 @@ export default function Services() {
     }
   };
 
+  const handleToggleVisibility = async (service) => {
+    try {
+      await toggleServiceVisibility(service.id, !service.is_visible);
+      fetchServices();
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      alert('Error toggling visibility');
+    }
+  };
+
   const resetForm = () => {
-    setFormData({ name: '', description: '', status: 'operational', position: 0, url: '', heartbeat_interval: 60, request_timeout: 120, retries: 5 });
+    setFormData({ name: '', description: '', status: 'operational', position: 0, url: '', heartbeat_interval: 60, request_timeout: 120, retries: 5, is_visible: true });
     setEditingService(null);
     setShowForm(false);
   };
@@ -195,16 +206,29 @@ export default function Services() {
                   <div>
                     <h3 className={theme === 'dark' ? 'text-lg font-medium text-white' : 'text-lg font-medium'}>{service.name}</h3>
                     <p className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>{service.description}</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                      service.status === 'operational' ? 'bg-green-100 text-green-800' :
-                      service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
-                      service.status === 'outage' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {service.status}
-                    </span>
+                    <div className="flex gap-2 mt-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        service.status === 'operational' ? 'bg-green-100 text-green-800' :
+                        service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+                        service.status === 'outage' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {service.status}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        service.is_visible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {service.is_visible ? '👁️ Visible' : '🚫 Hidden'}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleVisibility(service)}
+                      className={`px-3 py-1 rounded ${service.is_visible ? 'bg-gray-600 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                    >
+                      {service.is_visible ? 'Hide' : 'Show'}
+                    </button>
                     <button
                       onClick={() => handleEdit(service)}
                       className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
