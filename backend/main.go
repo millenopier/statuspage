@@ -40,6 +40,10 @@ func main() {
 	r.HandleFunc("/api/public/subscribe", publicHandler.Subscribe).Methods("POST")
 	r.HandleFunc("/api/public/unsubscribe", publicHandler.Unsubscribe).Methods("GET")
 
+	// Area routes (hidden page)
+	r.HandleFunc("/api/area/services", publicHandler.GetAllServices).Methods("GET")
+	r.HandleFunc("/api/area/services/{id}/visibility", publicHandler.ToggleServiceVisibility).Methods("PATCH")
+
 	// Auth routes
 	r.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
 
@@ -55,6 +59,7 @@ func main() {
 	admin.HandleFunc("/services", adminHandler.CreateService).Methods("POST")
 	admin.HandleFunc("/services/{id}", adminHandler.UpdateService).Methods("PUT")
 	admin.HandleFunc("/services/{id}", adminHandler.DeleteService).Methods("DELETE")
+	admin.HandleFunc("/services/{id}/visibility", adminHandler.ToggleServiceVisibility).Methods("PATCH")
 
 	admin.HandleFunc("/incidents", adminHandler.GetIncidents).Methods("GET")
 	admin.HandleFunc("/incidents", adminHandler.CreateIncident).Methods("POST")

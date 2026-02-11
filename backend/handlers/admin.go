@@ -223,7 +223,7 @@ func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool)
 
 // Services
 func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, created_at, updated_at FROM services ORDER BY position")
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible, created_at, updated_at FROM services ORDER BY position")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -233,7 +233,7 @@ func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
 	var services []models.Service
 	for rows.Next() {
 		var s models.Service
-		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.IsVisible, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
 		services = append(services, s)
@@ -266,8 +266,8 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := h.DB.QueryRow(
-		"INSERT INTO services (name, description, status, position, url, heartbeat_interval, request_timeout, retries) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at",
-		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries,
+		"INSERT INTO services (name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, created_at, updated_at",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, true,
 	).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
@@ -336,8 +336,8 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	h.DB.QueryRow("SELECT status, name FROM services WHERE id = $1", id).Scan(&oldStatus, &oldName)
 
 	_, err := h.DB.Exec(
-		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, updated_at=$9 WHERE id=$10",
-		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, time.Now(), id,
+		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, is_visible=$9, updated_at=$10 WHERE id=$11",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, s.IsVisible, time.Now(), id,
 	)
 
 	if err != nil {
@@ -366,6 +366,28 @@ func (h *AdminHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *AdminHandler) ToggleServiceVisibility(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	var req struct {
+		IsVisible bool `json:"is_visible"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err := h.DB.Exec("UPDATE services SET is_visible = $1, updated_at = $2 WHERE id = $3", req.IsVisible, time.Now(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"id": id, "is_visible": req.IsVisible})
 }
 
 // Incidents
