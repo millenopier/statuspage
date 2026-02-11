@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import Unsubscribe from './pages/Unsubscribe.jsx'
+import ServicesArea from './pages/ServicesArea.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -11,6 +12,7 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/unsubscribe" element={<Unsubscribe />} />
+        <Route path="/area/services" element={<ServicesArea />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

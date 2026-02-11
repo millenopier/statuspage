@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import StatusBanner from './components/StatusBanner';
 import ServiceList from './components/ServiceList';
 import IncidentTimeline from './components/IncidentTimeline';
 import MaintenanceCard from './components/MaintenanceCard';
 import HistorySection from './components/HistorySection';
 import SubscribeForm from './components/SubscribeForm';
-import ServicesArea from './pages/ServicesArea';
 import { getHeartbeat, getIncidents, getMaintenances } from './services/api';
 
-function HomePage() {
+export default function App() {
   const [status, setStatus] = useState('operational');
   const [services, setServices] = useState([]);
   const [incidents, setIncidents] = useState([]);
@@ -79,16 +77,5 @@ function HomePage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/area/services" element={<ServicesArea />} />
-      </Routes>
-    </BrowserRouter>
   );
 }
