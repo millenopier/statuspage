@@ -223,7 +223,14 @@ func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool)
 
 // Services
 func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible, incident, incident_published, created_at, updated_at FROM services ORDER BY position")
+	rows, err := h.DB.Query(`
+		SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, 
+		       COALESCE(is_visible, true) as is_visible,
+		       incident, incident_published,
+		       created_at, updated_at 
+		FROM services 
+		ORDER BY position
+	`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
