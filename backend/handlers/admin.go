@@ -223,7 +223,7 @@ func sendSlackMaintenanceAlert(maintenance models.Maintenance, isCompleted bool)
 
 // Services
 func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible, created_at, updated_at FROM services ORDER BY position")
+	rows, err := h.DB.Query("SELECT id, name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible, incident, incident_published, created_at, updated_at FROM services ORDER BY position")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -233,7 +233,7 @@ func (h *AdminHandler) GetServices(w http.ResponseWriter, r *http.Request) {
 	var services []models.Service
 	for rows.Next() {
 		var s models.Service
-		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.IsVisible, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Status, &s.Position, &s.URL, &s.HeartbeatInterval, &s.RequestTimeout, &s.Retries, &s.IsVisible, &s.Incident, &s.IncidentPublished, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
 		services = append(services, s)
@@ -254,7 +254,6 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Valores padrão
 	if s.HeartbeatInterval == 0 {
 		s.HeartbeatInterval = 60
 	}
@@ -266,13 +265,20 @@ func (h *AdminHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := h.DB.QueryRow(
-		"INSERT INTO services (name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, created_at, updated_at",
-		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, true,
+		"INSERT INTO services (name, description, status, position, url, heartbeat_interval, request_timeout, retries, is_visible, incident, incident_published) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id, created_at, updated_at",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, true, s.Incident, s.IncidentPublished,
 	).Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if s.Incident != nil && *s.Incident != "" && s.IncidentPublished {
+		_, _ = h.DB.Exec(
+			"INSERT INTO incidents (title, description, severity, status, service_id, is_visible) VALUES ($1, $2, $3, $4, $5, $6)",
+			s.Name+" Incident", *s.Incident, "major", "investigating", s.ID, true,
+		)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -331,13 +337,12 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Buscar status anterior
 	var oldStatus, oldName string
 	h.DB.QueryRow("SELECT status, name FROM services WHERE id = $1", id).Scan(&oldStatus, &oldName)
 
 	_, err := h.DB.Exec(
-		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, is_visible=$9, updated_at=$10 WHERE id=$11",
-		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, s.IsVisible, time.Now(), id,
+		"UPDATE services SET name=$1, description=$2, status=$3, position=$4, url=$5, heartbeat_interval=$6, request_timeout=$7, retries=$8, is_visible=$9, incident=$10, incident_published=$11, updated_at=$12 WHERE id=$13",
+		s.Name, s.Description, s.Status, s.Position, s.URL, s.HeartbeatInterval, s.RequestTimeout, s.Retries, s.IsVisible, s.Incident, s.IncidentPublished, time.Now(), id,
 	)
 
 	if err != nil {
@@ -345,7 +350,13 @@ func (h *AdminHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Se o status mudou, enviar notificação ao Slack
+	if s.Incident != nil && *s.Incident != "" && s.IncidentPublished {
+		_, _ = h.DB.Exec(
+			"INSERT INTO incidents (title, description, severity, status, service_id, is_visible) VALUES ($1, $2, $3, $4, $5, $6)",
+			s.Name+" Incident", *s.Incident, "major", "investigating", id, true,
+		)
+	}
+
 	if oldStatus != s.Status {
 		sendSlackServiceStatusChange(s.Name, oldStatus, s.Status)
 	}

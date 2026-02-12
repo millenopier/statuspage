@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS services (
     heartbeat_interval INTEGER DEFAULT 60,
     request_timeout INTEGER DEFAULT 120,
     retries INTEGER DEFAULT 5,
+    is_visible BOOLEAN DEFAULT true,
+    incident TEXT,
+    incident_published BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -28,6 +31,7 @@ CREATE TABLE IF NOT EXISTS incidents (
     severity VARCHAR(50) NOT NULL,
     status VARCHAR(50) DEFAULT 'investigating',
     service_id INTEGER REFERENCES services(id) ON DELETE SET NULL,
+    is_visible BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP

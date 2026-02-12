@@ -11,6 +11,10 @@ cd /opt/statuspage
 echo "📥 Pulling latest code..."
 git pull
 
+# Executar migrações do banco
+echo "🗄️ Running database migrations..."
+psql -U postgres -d statuspage -f /opt/statuspage/backend/database/migrations/001_add_incident_fields.sql || echo "Migration already applied or failed"
+
 # Rebuild Backend
 echo "🔨 Building backend..."
 cd backend

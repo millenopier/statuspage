@@ -20,6 +20,8 @@ type Service struct {
 	RequestTimeout     int       `json:"request_timeout"`
 	Retries            int       `json:"retries"`
 	IsVisible          bool      `json:"is_visible"`
+	Incident           *string   `json:"incident"`
+	IncidentPublished  bool      `json:"incident_published"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 }
