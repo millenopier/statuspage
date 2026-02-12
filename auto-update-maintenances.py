@@ -3,11 +3,13 @@ import psycopg2
 import requests
 import os
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 # Carregar configurações
 load_dotenv('/Users/milleno/Documents/statuspage/monitor-config.env')
 load_dotenv('monitor-config.env')  # Fallback para path relativo
+load_dotenv('/opt/statuspage/backend/.env')  # EC2
 
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', '127.0.0.1'),
@@ -26,10 +28,13 @@ def send_slack_alert(title, status, description, scheduled_start, scheduled_end)
     color = "#439FE0"
     if status == "completed":
         color = "good"
-        title_prefix = "✅ Maintenance Completed: "
+        title_prefix = "✅ Manutenção Concluída: "
     elif status == "in_progress":
         color = "warning"
-        title_prefix = "🚧 Maintenance Started: "
+        title_prefix = "🚧 Manutenção Iniciada: "
+    elif status == "scheduled":
+        color = "#439FE0"
+        title_prefix = "📅 Manutenção Agendada: "
     else:
         return
     
@@ -39,22 +44,24 @@ def send_slack_alert(title, status, description, scheduled_start, scheduled_end)
             "title": title_prefix + title,
             "fields": [
                 {"title": "Status", "value": status, "short": True},
-                {"title": "Start (SP)", "value": scheduled_start, "short": True},
-                {"title": "End (SP)", "value": scheduled_end, "short": True},
-                {"title": "Description", "value": description, "short": False}
+                {"title": "Início (Horário de SP)", "value": scheduled_start, "short": True},
+                {"title": "Fim (Horário de SP)", "value": scheduled_end, "short": True},
+                {"title": "Descrição", "value": description or "N/A", "short": False}
             ]
         }]
     }
     
     try:
         requests.post(SLACK_WEBHOOK, json=payload, timeout=5)
-    except:
-        pass
+        print(f"   → Slack alert sent: {title_prefix}{title}")
+    except Exception as e:
+        print(f"   → Failed to send Slack: {e}")
 
 def update_maintenances():
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
     
+    sp_tz = ZoneInfo("America/Sao_Paulo")
     now = datetime.now(timezone.utc)
     
     # Atualizar para in_progress
@@ -66,13 +73,13 @@ def update_maintenances():
     
     for row in cur.fetchall():
         maintenance_id, title, description, scheduled_start, scheduled_end = row
-        cur.execute("UPDATE maintenances SET status = 'in_progress', actual_start = %s WHERE id = %s", (now, maintenance_id))
+        cur.execute("UPDATE maintenances SET status = 'in_progress', actual_start = %s, updated_at = %s WHERE id = %s", (now, now, maintenance_id))
         
-        # Enviar alerta Slack
-        start_sp = (scheduled_start.replace(tzinfo=timezone.utc)).strftime("%d/%m/%Y %H:%M")
-        end_sp = (scheduled_end.replace(tzinfo=timezone.utc)).strftime("%d/%m/%Y %H:%M")
+        # Converter para horário de SP
+        start_sp = scheduled_start.replace(tzinfo=timezone.utc).astimezone(sp_tz).strftime("%d/%m/%Y %H:%M")
+        end_sp = scheduled_end.replace(tzinfo=timezone.utc).astimezone(sp_tz).strftime("%d/%m/%Y %H:%M")
         send_slack_alert(title, "in_progress", description, start_sp, end_sp)
-        print(f"✅ Maintenance {maintenance_id} started: {title}")
+        print(f"✅ Manutenção {maintenance_id} iniciada: {title}")
     
     # Atualizar para completed
     cur.execute("""
@@ -83,13 +90,13 @@ def update_maintenances():
     
     for row in cur.fetchall():
         maintenance_id, title, description, scheduled_start, scheduled_end = row
-        cur.execute("UPDATE maintenances SET status = 'completed', actual_end = %s WHERE id = %s", (now, maintenance_id))
+        cur.execute("UPDATE maintenances SET status = 'completed', actual_end = %s, updated_at = %s WHERE id = %s", (now, now, maintenance_id))
         
-        # Enviar alerta Slack
-        start_sp = (scheduled_start.replace(tzinfo=timezone.utc)).strftime("%d/%m/%Y %H:%M")
-        end_sp = (scheduled_end.replace(tzinfo=timezone.utc)).strftime("%d/%m/%Y %H:%M")
+        # Converter para horário de SP
+        start_sp = scheduled_start.replace(tzinfo=timezone.utc).astimezone(sp_tz).strftime("%d/%m/%Y %H:%M")
+        end_sp = scheduled_end.replace(tzinfo=timezone.utc).astimezone(sp_tz).strftime("%d/%m/%Y %H:%M")
         send_slack_alert(title, "completed", description, start_sp, end_sp)
-        print(f"✅ Maintenance {maintenance_id} completed: {title}")
+        print(f"✅ Manutenção {maintenance_id} concluída: {title}")
     
     conn.commit()
     cur.close()
