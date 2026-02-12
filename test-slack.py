@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 import requests
+import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-SLACK_WEBHOOK = "https://hooks.slack.com/services/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"
+# Carregar configurações
+load_dotenv('/Users/milleno/Documents/statuspage/monitor-config.env')
+load_dotenv('monitor-config.env')  # Fallback para path relativo
+
+SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK', '')
+
+if not SLACK_WEBHOOK:
+    print("❌ SLACK_WEBHOOK não configurado no monitor-config.env")
+    exit(1)
 
 # Teste de alerta
 payload = {

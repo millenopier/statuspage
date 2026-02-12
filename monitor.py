@@ -7,10 +7,15 @@ import socket
 import os
 from datetime import datetime
 from urllib.parse import urlparse
+from dotenv import load_dotenv
 
-BACKEND_URL = "http://localhost:8080/api/monitors/report"
-SLACK_WEBHOOK = "https://hooks.slack.com/services/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"
-STATE_FILE = "/Users/milleno/Documents/statuspage-new/monitor-state.json"
+# Carregar configurações do arquivo .env
+load_dotenv('/Users/milleno/Documents/statuspage/monitor-config.env')
+load_dotenv('monitor-config.env')  # Fallback para path relativo
+
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8080/api/monitors/report')
+SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK', '')
+STATE_FILE = "/Users/milleno/Documents/statuspage/monitor-state.json"
 
 # Configurações
 REQUEST_TIMEOUT = 120  # segundos
@@ -49,6 +54,10 @@ def check_tcp(host, port=TCP_PORT, timeout=REQUEST_TIMEOUT):
 
 def send_slack_alert(name, url, status_code, error, is_recovery=False):
     """Envia alerta para o Slack"""
+    if not SLACK_WEBHOOK:
+        print("   → Slack webhook not configured")
+        return
+    
     if is_recovery:
         color = "good"
         title = f"✅ RECOVERED: {name} is back online"

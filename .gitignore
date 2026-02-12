@@ -1,5 +1,6 @@
 # Environment variables
 backend/.env
+monitor-config.env
 
 # Dependencies
 node_modules/

@@ -3,13 +3,18 @@ import psycopg2
 import requests
 import os
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Carregar configurações
+load_dotenv('/Users/milleno/Documents/statuspage/monitor-config.env')
+load_dotenv('monitor-config.env')  # Fallback para path relativo
 
 DB_CONFIG = {
-    'host': '127.0.0.1',
-    'port': 5432,
-    'user': 'postgres',
-    'password': 'postgres',
-    'database': 'statuspage'
+    'host': os.getenv('DB_HOST', '127.0.0.1'),
+    'port': int(os.getenv('DB_PORT', 5432)),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', 'postgres'),
+    'database': os.getenv('DB_NAME', 'statuspage')
 }
 
 SLACK_WEBHOOK = os.getenv('SLACK_WEBHOOK', '')
