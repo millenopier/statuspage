@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { getServices, getIncidents, getMaintenances, toggleIncidentVisibility } from '../services/api';
+import { getServices, getIncidents, getMaintenances, publishServiceIncident, unpublishServiceIncident } from '../services/api';
 import { useThemeStore } from '../contexts/themeStore';
 
 export default function Dashboard() {
@@ -40,18 +40,18 @@ export default function Dashboard() {
     }
   };
 
-  const handlePublishIncident = async (incidentId) => {
+  const handlePublishIncident = async (serviceId) => {
     try {
-      await toggleIncidentVisibility(incidentId, true);
+      await publishServiceIncident(serviceId);
       fetchStats();
     } catch (error) {
       console.error('Error publishing incident:', error);
     }
   };
 
-  const handleUnpublishIncident = async (incidentId) => {
+  const handleUnpublishIncident = async (serviceId) => {
     try {
-      await toggleIncidentVisibility(incidentId, false);
+      await unpublishServiceIncident(serviceId);
       fetchStats();
     } catch (error) {
       console.error('Error unpublishing incident:', error);
@@ -188,15 +188,43 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {degradedServices.map((service) => (
                     <div key={service.id} className="border-l-4 border-yellow-500 pl-4 py-2">
-                      <div className="font-medium">{service.name}</div>
-                      <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{service.description}</div>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                        service.status === 'outage' ? 'bg-red-100 text-red-800' :
-                        service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {service.status}
-                      </span>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-medium">{service.name}</div>
+                          <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{service.description}</div>
+                          {service.incident && (
+                            <div className={theme === 'dark' ? 'text-sm text-gray-300 mt-1 italic' : 'text-sm text-gray-700 mt-1 italic'}>
+                              Incident: {service.incident}
+                            </div>
+                          )}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                            service.status === 'outage' ? 'bg-red-100 text-red-800' :
+                            service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {service.status}
+                          </span>
+                        </div>
+                        {service.incident && (
+                          <div className="ml-4">
+                            {service.incident_published ? (
+                              <button
+                                onClick={() => handleUnpublishIncident(service.id)}
+                                className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+                              >
+                                Unpublish
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handlePublishIncident(service.id)}
+                                className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                              >
+                                Publish
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

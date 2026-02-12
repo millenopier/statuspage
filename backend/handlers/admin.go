@@ -408,6 +408,46 @@ func (h *AdminHandler) ToggleServiceVisibility(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(map[string]interface{}{"id": id, "is_visible": req.IsVisible})
 }
 
+func (h *AdminHandler) PublishServiceIncident(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	var serviceName, incident string
+	err := h.DB.QueryRow("SELECT name, COALESCE(incident, '') FROM services WHERE id = $1", id).Scan(&serviceName, &incident)
+	if err != nil || incident == "" {
+		http.Error(w, "Service not found or no incident", http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.DB.Exec("INSERT INTO incidents (title, description, severity, status, service_id, is_visible) VALUES ($1, $2, $3, $4, $5, $6)",
+		serviceName+" Incident", incident, "major", "investigating", id, true)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = h.DB.Exec("UPDATE services SET incident_published = true WHERE id = $1", id)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+}
+
+func (h *AdminHandler) UnpublishServiceIncident(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	_, err := h.DB.Exec("DELETE FROM incidents WHERE service_id = $1 AND status != 'resolved'", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = h.DB.Exec("UPDATE services SET incident_published = false WHERE id = $1", id)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+}
+
 // Incidents
 func (h *AdminHandler) GetIncidents(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.DB.Query(`

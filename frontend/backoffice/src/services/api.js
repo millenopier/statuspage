@@ -27,6 +27,8 @@ export const createService = (data) => api.post('/admin/services', data);
 export const updateService = (id, data) => api.put(`/admin/services/${id}`, data);
 export const deleteService = (id) => api.delete(`/admin/services/${id}`);
 export const toggleServiceVisibility = (id, isVisible) => api.patch(`/admin/services/${id}/visibility`, { is_visible: isVisible });
+export const publishServiceIncident = (id) => api.post(`/admin/services/${id}/publish-incident`);
+export const unpublishServiceIncident = (id) => api.post(`/admin/services/${id}/unpublish-incident`);
 
 // Incidents
 export const getIncidents = () => api.get('/admin/incidents');

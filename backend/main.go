@@ -60,6 +60,8 @@ func main() {
 	admin.HandleFunc("/services/{id}", adminHandler.UpdateService).Methods("PUT")
 	admin.HandleFunc("/services/{id}", adminHandler.DeleteService).Methods("DELETE")
 	admin.HandleFunc("/services/{id}/visibility", adminHandler.ToggleServiceVisibility).Methods("PATCH")
+	admin.HandleFunc("/services/{id}/publish-incident", adminHandler.PublishServiceIncident).Methods("POST")
+	admin.HandleFunc("/services/{id}/unpublish-incident", adminHandler.UnpublishServiceIncident).Methods("POST")
 
 	admin.HandleFunc("/incidents", adminHandler.GetIncidents).Methods("GET")
 	admin.HandleFunc("/incidents", adminHandler.CreateIncident).Methods("POST")
