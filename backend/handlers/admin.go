@@ -23,12 +23,16 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 	smtpPass := os.Getenv("SMTP_PASSWORD")
 	fromEmail := os.Getenv("SES_FROM_EMAIL")
 	
+	log.Printf("[EMAIL] Starting maintenance email send - SMTP: %s:%s, From: %s", smtpHost, smtpPort, fromEmail)
+	
 	if smtpHost == "" || smtpUser == "" || smtpPass == "" || fromEmail == "" {
+		log.Printf("[EMAIL] Missing SMTP configuration")
 		return
 	}
 
 	rows, err := db.Query("SELECT email, unsubscribe_token FROM subscribers WHERE is_active = true")
 	if err != nil {
+		log.Printf("[EMAIL] Error querying subscribers: %v", err)
 		return
 	}
 	defer rows.Close()
@@ -40,9 +44,11 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 	
+	sentCount := 0
 	for rows.Next() {
 		var email, token string
 		if err := rows.Scan(&email, &token); err != nil {
+			log.Printf("[EMAIL] Error scanning row: %v", err)
 			continue
 		}
 
@@ -67,42 +73,47 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 		msg := []byte(fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
 			fromEmail, email, subject, htmlBody))
 
-		// Conectar sem TLS primeiro (porta 587 usa STARTTLS)
 		conn, err := smtp.Dial(smtpHost + ":" + smtpPort)
 		if err != nil {
+			log.Printf("[EMAIL] Error connecting to SMTP for %s: %v", email, err)
 			continue
 		}
 
-		// Iniciar STARTTLS
 		tlsConfig := &tls.Config{ServerName: smtpHost}
 		if err = conn.StartTLS(tlsConfig); err != nil {
+			log.Printf("[EMAIL] Error starting TLS for %s: %v", email, err)
 			conn.Close()
 			continue
 		}
 
 		if err = conn.Auth(auth); err != nil {
+			log.Printf("[EMAIL] Error authenticating for %s: %v", email, err)
 			conn.Close()
 			continue
 		}
 
 		if err = conn.Mail(fromEmail); err != nil {
+			log.Printf("[EMAIL] Error setting sender for %s: %v", email, err)
 			conn.Close()
 			continue
 		}
 
 		if err = conn.Rcpt(email); err != nil {
+			log.Printf("[EMAIL] Error setting recipient %s: %v", email, err)
 			conn.Close()
 			continue
 		}
 
 		w, err := conn.Data()
 		if err != nil {
+			log.Printf("[EMAIL] Error getting data writer for %s: %v", email, err)
 			conn.Close()
 			continue
 		}
 
 		_, err = w.Write(msg)
 		if err != nil {
+			log.Printf("[EMAIL] Error writing message for %s: %v", email, err)
 			w.Close()
 			conn.Close()
 			continue
@@ -110,7 +121,10 @@ func sendMaintenanceEmails(db *sql.DB, maintenance models.Maintenance) {
 
 		w.Close()
 		conn.Quit()
+		sentCount++
+		log.Printf("[EMAIL] Successfully sent to %s", email)
 	}
+	log.Printf("[EMAIL] Finished sending emails. Total sent: %d", sentCount)
 }
 
 var SLACK_WEBHOOK = os.Getenv("SLACK_WEBHOOK")
