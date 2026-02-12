@@ -412,15 +412,20 @@ func (h *AdminHandler) PublishServiceIncident(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	var serviceName, incident string
-	err := h.DB.QueryRow("SELECT name, COALESCE(incident, '') FROM services WHERE id = $1", id).Scan(&serviceName, &incident)
-	if err != nil || incident == "" {
-		http.Error(w, "Service not found or no incident", http.StatusBadRequest)
+	var serviceName, incident sql.NullString
+	err := h.DB.QueryRow("SELECT name, incident FROM services WHERE id = $1", id).Scan(&serviceName, &incident)
+	if err != nil {
+		http.Error(w, "Service not found", http.StatusBadRequest)
 		return
 	}
 
+	incidentDesc := incident.String
+	if !incident.Valid || incidentDesc == "" {
+		incidentDesc = "Service experiencing issues"
+	}
+
 	_, err = h.DB.Exec("INSERT INTO incidents (title, description, severity, status, service_id, is_visible) VALUES ($1, $2, $3, $4, $5, $6)",
-		serviceName+" Incident", incident, "major", "investigating", id, true)
+		serviceName.String+" Incident", incidentDesc, "major", "investigating", id, true)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

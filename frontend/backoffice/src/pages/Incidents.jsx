@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { getIncidents, createIncident, updateIncident, getServices, toggleIncidentVisibility } from '../services/api';
+import { getIncidents, createIncident, updateIncident, getServices, toggleIncidentVisibility, publishServiceIncident, unpublishServiceIncident } from '../services/api';
 import { useThemeStore } from '../contexts/themeStore';
 
 export default function Incidents() {
   const theme = useThemeStore((state) => state.theme);
   const [incidents, setIncidents] = useState([]);
   const [services, setServices] = useState([]);
+  const [degradedServices, setDegradedServices] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingIncident, setEditingIncident] = useState(null);
   const [formData, setFormData] = useState({
@@ -36,10 +37,13 @@ export default function Incidents() {
   const fetchServices = async () => {
     try {
       const response = await getServices();
-      setServices(response.data || []);
+      const allServices = response.data || [];
+      setServices(allServices);
+      setDegradedServices(allServices.filter(s => s.status !== 'operational'));
     } catch (error) {
       console.error('Error fetching services:', error);
       setServices([]);
+      setDegradedServices([]);
     }
   };
 
@@ -72,6 +76,28 @@ export default function Incidents() {
     } catch (error) {
       console.error('Error toggling visibility:', error);
       alert('Error toggling visibility');
+    }
+  };
+
+  const handlePublishServiceIncident = async (serviceId) => {
+    try {
+      await publishServiceIncident(serviceId);
+      fetchIncidents();
+      fetchServices();
+    } catch (error) {
+      console.error('Error publishing incident:', error);
+      alert('Error publishing incident');
+    }
+  };
+
+  const handleUnpublishServiceIncident = async (serviceId) => {
+    try {
+      await unpublishServiceIncident(serviceId);
+      fetchIncidents();
+      fetchServices();
+    } catch (error) {
+      console.error('Error unpublishing incident:', error);
+      alert('Error unpublishing incident');
     }
   };
 
@@ -166,6 +192,53 @@ export default function Incidents() {
                 Save
               </button>
             </form>
+          </div>
+        )}
+
+        {degradedServices.length > 0 && (
+          <div className={theme === 'dark' ? 'bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6' : 'bg-white shadow rounded-lg p-6 mb-6'}>
+            <h2 className={theme === 'dark' ? 'text-lg font-medium text-yellow-400 mb-4' : 'text-lg font-medium text-yellow-600 mb-4'}>⚠️ Degraded Services</h2>
+            <div className="space-y-3">
+              {degradedServices.map((service) => (
+                <div key={service.id} className="border-l-4 border-yellow-500 pl-4 py-2">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className={theme === 'dark' ? 'font-medium text-white' : 'font-medium'}>{service.name}</div>
+                      <div className={theme === 'dark' ? 'text-sm text-gray-400' : 'text-sm text-gray-600'}>{service.description}</div>
+                      {service.incident && (
+                        <div className={theme === 'dark' ? 'text-sm text-gray-300 mt-1 italic' : 'text-sm text-gray-700 mt-1 italic'}>
+                          Incident: {service.incident}
+                        </div>
+                      )}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2 ${
+                        service.status === 'outage' ? 'bg-red-100 text-red-800' :
+                        service.status === 'degraded' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {service.status}
+                      </span>
+                    </div>
+                    <div className="ml-4">
+                      {service.incident_published ? (
+                        <button
+                          onClick={() => handleUnpublishServiceIncident(service.id)}
+                          className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+                        >
+                          Unpublish
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handlePublishServiceIncident(service.id)}
+                          className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                        >
+                          Publish
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

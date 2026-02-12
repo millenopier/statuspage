@@ -18,8 +18,6 @@ export default function Services() {
     request_timeout: 120,
     retries: 5,
     is_visible: true,
-    incident: '',
-    incident_published: false,
   });
 
   useEffect(() => {
@@ -79,7 +77,7 @@ export default function Services() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', status: 'operational', position: 0, url: '', heartbeat_interval: 60, request_timeout: 120, retries: 5, is_visible: true, incident: '', incident_published: false });
+    setFormData({ name: '', description: '', status: 'operational', position: 0, url: '', heartbeat_interval: 60, request_timeout: 120, retries: 5, is_visible: true });
     setEditingService(null);
     setShowForm(false);
   };
@@ -184,28 +182,6 @@ export default function Services() {
                     className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
                   />
                 </div>
-              </div>
-              <div>
-                <label className={theme === 'dark' ? 'block text-sm font-medium text-gray-300' : 'block text-sm font-medium text-gray-700'}>Incident Description (optional)</label>
-                <textarea
-                  value={formData.incident}
-                  onChange={(e) => setFormData({ ...formData, incident: e.target.value })}
-                  placeholder="Describe the incident affecting this service..."
-                  className={theme === 'dark' ? 'mt-1 block w-full bg-[#0d1117] border border-[#30363d] rounded-md shadow-sm py-2 px-3 text-white' : 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3'}
-                  rows="2"
-                />
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="incident_published"
-                  checked={formData.incident_published}
-                  onChange={(e) => setFormData({ ...formData, incident_published: e.target.checked })}
-                  className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                />
-                <label htmlFor="incident_published" className={theme === 'dark' ? 'ml-2 block text-sm text-gray-300' : 'ml-2 block text-sm text-gray-700'}>
-                  Publish incident to Recent Incidents history
-                </label>
               </div>
               <button
                 type="submit"
